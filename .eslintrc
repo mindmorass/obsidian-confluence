@@ -30,5 +30,5 @@
         }
       }]
     },
-    "ignorePatterns": ["dist/**", "dev-vault/**", "dist-cli/**", ".husky/**"]
+    "ignorePatterns": ["dist/**", "dev-vault/**", "dist-cli/**", ".husky/**", "node_modules/**", "build/**", "*.config.mjs", "*.config.js"]
   }

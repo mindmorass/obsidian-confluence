@@ -11,7 +11,7 @@
         "dev": "tsc --watch",
         "build": "tsc",
         "fmt": "npx prettier --write src/",
-        "lint": "eslint --ignore-path ../../.eslintignore --ext .js,.ts src/",
+        "lint": "npx eslint@8 --ignore-path ../../.eslintignore --ext .js,.ts src/",
         "prettier-check": "npx prettier --check src/",
         "test": "NODE_OPTIONS=--experimental-vm-modules jest"
     },
@@ -72,11 +72,11 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/markdown-confluence/markdown-confluence",
+        "url": "https://github.com/mindmorass/markdown-confluence",
         "directory": "packages/lib"
     },
-    "homepage": "https://github.com/markdown-confluence/markdown-confluence/tree/main/packages/lib",
+    "homepage": "https://github.com/mindmorass/markdown-confluence/tree/main/packages/lib",
     "bugs": {
-        "url": "https://github.com/markdown-confluence/markdown-confluence/issues"
+        "url": "https://github.com/mindmorass/markdown-confluence/issues"
     }
 }

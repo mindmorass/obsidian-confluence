@@ -1,6 +1,6 @@
-import type MarkdownIt from "markdown-it/lib";
+import type MarkdownIt from "markdown-it";
 import type StateCore from "markdown-it/lib/rules_core/state_core";
-import Token from "markdown-it/lib/token";
+import type Token from "markdown-it/lib/token";
 
 const panelRegex =
 	/\[!(?<calloutType>.*?)\](?<collapseType>[+-])?[ \t]*(?<title>.*)/;
@@ -91,12 +91,23 @@ function capitalizeFirstLetter(string: string) {
 }
 
 export function panel(state: StateCore): boolean {
-	let isInCallout = false;
-	let adfType = "panel";
-	let calloutStartIndex = 0;
-	let blockTitle = "";
+	// Track callout metadata for each blockquote_open token by its index
+	const calloutMetadata = new Map<
+		number,
+		{
+			adfType: string;
+			calloutStartIndex: number;
+			blockTitle: string;
+		}
+	>();
+
 	const newTokens = state.tokens.reduce(
-		(previousTokens, token, currentIndex: number, allTokens) => {
+		(
+			previousTokens: Token[],
+			token: Token,
+			currentIndex: number,
+			allTokens: Token[],
+		) => {
 			let tokenToReturn = token;
 			if (token.type === "blockquote_open") {
 				let currentCheck = currentIndex + 1; // Start after this token
@@ -127,20 +138,27 @@ export function panel(state: StateCore): boolean {
 					const calloutType = check.groups["calloutType"] ?? "info";
 					const collapseType = check.groups["collapseType"];
 					const title = check.groups["title"];
-					calloutStartIndex = currentCheck - 1;
-					isInCallout = true;
-					blockTitle = title ? title : calloutType;
+					const calloutStartIndex = currentCheck - 1;
+					const blockTitle = title ? title : calloutType;
+					const adfType =
+						collapseType === "+" || collapseType === "-"
+							? "expand"
+							: "panel";
+
+					// Store metadata for this callout using the blockquote_open index
+					calloutMetadata.set(currentIndex, {
+						adfType,
+						calloutStartIndex,
+						blockTitle,
+					});
 
 					if (collapseType === "+" || collapseType === "-") {
-						adfType = "expand";
 						tokenToReturn = new state.Token("expand_open", "", 0);
 						tokenToReturn.markup = ">";
 						tokenToReturn.block = true;
 						tokenToReturn.nesting = 1;
-
 						tokenToReturn.attrs = [["title", blockTitle]];
 					} else {
-						adfType = "panel";
 						tokenToReturn = new state.Token("panel_open", "", 0);
 						tokenToReturn.markup = ">";
 						tokenToReturn.block = true;
@@ -151,30 +169,59 @@ export function panel(state: StateCore): boolean {
 					break;
 				}
 			}
-			if (token.type === "blockquote_close" && isInCallout) {
-				token.type = `${adfType}_close`;
-				token.tag = "";
+
+			// Find the matching blockquote_open for this close token
+			if (token.type === "blockquote_close") {
+				// Search backwards to find the matching open tag using nesting
+				let nestLevel = 1;
+				for (let i = currentIndex - 1; i >= 0; i--) {
+					const tokenToCheck = allTokens[i];
+					if (!tokenToCheck) {
+						continue;
+					}
+					if (tokenToCheck.type === "blockquote_close") {
+						nestLevel++;
+					} else if (tokenToCheck.type === "blockquote_open") {
+						nestLevel--;
+						if (nestLevel === 0) {
+							// Found the matching blockquote_open
+							const metadata = calloutMetadata.get(i);
+							if (metadata) {
+								token.type = `${metadata.adfType}_close`;
+								token.tag = "";
+							}
+							break;
+						}
+					}
+				}
 			}
-			if (currentIndex === calloutStartIndex && isInCallout) {
-				const check = token.content.match(panelRegex);
-				const calloutTitle = capitalizeFirstLetter(blockTitle);
-				if (check && check.length > 1) {
-					token.content = token.content.replace(
-						check[0],
-						calloutTitle,
-					);
-					if (token.children) {
-						for (let i = 0; i < token.children.length; i++) {
-							const child = token.children[i];
-							if (child && child.content.includes(check[0])) {
-								child.content = child.content.replace(
-									check[0],
-									calloutTitle,
-								);
-								break;
+
+			// Check if this is the callout title token (the token containing [!INFO] etc.)
+			for (const [, metadata] of calloutMetadata.entries()) {
+				if (currentIndex === metadata.calloutStartIndex) {
+					const check = token.content.match(panelRegex);
+					if (check && check.length > 0) {
+						const calloutTitle = capitalizeFirstLetter(
+							metadata.blockTitle,
+						);
+						token.content = token.content.replace(
+							check[0],
+							calloutTitle,
+						);
+						if (token.children) {
+							for (let i = 0; i < token.children.length; i++) {
+								const child = token.children[i];
+								if (child && child.content.includes(check[0])) {
+									child.content = child.content.replace(
+										check[0],
+										calloutTitle,
+									);
+									break;
+								}
 							}
 						}
 					}
+					break;
 				}
 			}
 

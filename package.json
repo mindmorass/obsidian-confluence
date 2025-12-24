@@ -9,6 +9,7 @@
       "dev-obsidian": "npm run dev --workspace=@markdown-confluence/lib & npm run dev --workspace=@markdown-confluence/mermaid-electron-renderer & npm run dev --workspace=obsidian-confluence",
       "build": "npm run build -ws --if-present",
       "fmt": "npm run fmt -ws --if-present",
+      "lint": "npm run lint -ws --if-present",
       "test": "npm test -ws --if-present"
    },
    "devDependencies": {
