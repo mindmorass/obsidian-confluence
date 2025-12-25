@@ -195,11 +195,15 @@ export function panel(state: StateCore): boolean {
 				}
 			}
 
-			// Note: We don't modify the token content containing [!INFO] anymore
-			// The panel title is already set via token attributes, and modifying
-			// token content can cause artifacts in the markdown files.
-			// The original callout syntax will remain in the token but won't affect
-			// the ADF conversion since we're converting blockquote to panel tokens.
+			// Skip the token containing the callout pattern (e.g., [!INFO], [!WARNING])
+			// The panel type is already set via token attributes, so we don't need
+			// the callout label text in the rendered ADF
+			for (const [, metadata] of calloutMetadata.entries()) {
+				if (currentIndex === metadata.calloutStartIndex) {
+					// This is the token with the callout pattern - skip it
+					return previousTokens;
+				}
+			}
 
 			return [...previousTokens, tokenToReturn];
 		},

@@ -206,14 +206,17 @@ export default class ConfluencePlugin extends Plugin {
 		// This ensures Obsidian knows the correct types for these properties
 		// Note: registerPropertyType may not be in the TypeScript definitions
 		// but should be available at runtime in Obsidian
+		// Types must match the actual values written:
+		// - connie-publish: boolean (from ConniePageConfig)
+		// - connie-page-id: text/string (from ConniePageConfig, stored as string)
 		try {
 			const metadataCache = this.app.metadataCache as any;
 			if (
 				metadataCache &&
 				typeof metadataCache.registerPropertyType === "function"
 			) {
-				metadataCache.registerPropertyType("connie-publish", "number");
-				metadataCache.registerPropertyType("connie-page-id", "number");
+				metadataCache.registerPropertyType("connie-publish", "boolean");
+				metadataCache.registerPropertyType("connie-page-id", "text");
 			}
 		} catch (error) {
 			// If property type registration fails, it's not critical
