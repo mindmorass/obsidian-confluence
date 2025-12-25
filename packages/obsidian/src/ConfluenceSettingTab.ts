@@ -1,4 +1,4 @@
-import { App, Setting, PluginSettingTab } from "obsidian";
+import { App, Setting, PluginSettingTab, TFolder } from "obsidian";
 import ConfluencePlugin from "./main";
 
 export class ConfluenceSettingTab extends PluginSettingTab {
@@ -7,6 +7,28 @@ export class ConfluenceSettingTab extends PluginSettingTab {
 	constructor(app: App, plugin: ConfluencePlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
+	}
+
+	/**
+	 * Get all root-level folders under the "Confluence" directory
+	 */
+	private getConfluenceFolders(): string[] {
+		const confluenceFolder =
+			this.app.vault.getAbstractFileByPath("Confluence");
+
+		if (!confluenceFolder || !(confluenceFolder instanceof TFolder)) {
+			return [];
+		}
+
+		// Get all direct children that are folders
+		const folders: string[] = [];
+		for (const child of confluenceFolder.children) {
+			if (child instanceof TFolder) {
+				folders.push(child.path);
+			}
+		}
+
+		return folders.sort();
 	}
 
 	display(): void {
@@ -70,20 +92,65 @@ export class ConfluenceSettingTab extends PluginSettingTab {
 					}),
 			);
 
-		new Setting(containerEl)
+		// Folder to publish setting with dropdown for Confluence directory
+		const confluenceFolders = this.getConfluenceFolders();
+		const confluenceFolderExists = confluenceFolders.length > 0;
+
+		const folderSetting = new Setting(containerEl)
 			.setName("Folder to publish")
 			.setDesc(
-				"Publish all files except notes that are excluded using YAML Frontmatter",
-			)
-			.addText((text) =>
-				text
-					.setPlaceholder("")
-					.setValue(this.plugin.settings.folderToPublish)
+				confluenceFolderExists
+					? "Select a folder from the Confluence directory to publish"
+					: "Create a 'Confluence' directory in your vault with subfolders to enable folder selection",
+			);
+
+		if (confluenceFolderExists) {
+			// Create dropdown with folders from Confluence directory
+			const folderOptions: Record<string, string> = {};
+			for (const folderPath of confluenceFolders) {
+				// Use just the folder name (last part of path) as the display name
+				const folderName = folderPath.split("/").pop() || folderPath;
+				folderOptions[folderPath] = folderName;
+			}
+
+			folderSetting.addDropdown((dropdown) => {
+				dropdown
+					.addOptions(folderOptions)
+					.setValue(
+						confluenceFolders.includes(
+							this.plugin.settings.folderToPublish,
+						)
+							? this.plugin.settings.folderToPublish
+							: confluenceFolders[0] || "",
+					)
 					.onChange(async (value) => {
 						this.plugin.settings.folderToPublish = value;
 						await this.plugin.saveSettings();
-					}),
-			);
+					});
+			});
+		} else {
+			// Show text input (still allow manual entry for backwards compatibility)
+			// but display a warning about creating the Confluence directory
+			folderSetting.addText((text) => {
+				text.setPlaceholder(
+					"Enter folder path (e.g., 'Confluence/MyFolder')",
+				)
+					.setValue(this.plugin.settings.folderToPublish || "")
+					.onChange(async (value) => {
+						this.plugin.settings.folderToPublish = value;
+						await this.plugin.saveSettings();
+					});
+			});
+
+			// Add a warning note below the setting
+			const noteEl = containerEl.createEl("div", {
+				cls: "setting-item-description",
+			});
+			noteEl.createEl("p", {
+				text: "⚠️ Please create a 'Confluence' directory in your vault root with subfolders to enable folder selection via dropdown.",
+				cls: "mod-warning",
+			});
+		}
 
 		new Setting(containerEl)
 			.setName("First Header Page Name")

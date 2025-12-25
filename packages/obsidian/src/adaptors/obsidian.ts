@@ -23,8 +23,16 @@ export default class ObsidianAdaptor implements LoaderAdaptor {
 	) {
 		this.vault = vault;
 		this.metadataCache = metadataCache;
+		// Store a reference to the settings object so updates are reflected immediately
 		this.settings = settings;
 		this.app = app;
+	}
+
+	// Method to update settings reference (in case settings object is replaced)
+	updateSettings(
+		settings: ConfluenceUploadSettings.ConfluenceSettings,
+	): void {
+		this.settings = settings;
 	}
 
 	async getMarkdownFilesToUpload(): Promise<FilesToUpload> {
@@ -42,8 +50,18 @@ export default class ObsidianAdaptor implements LoaderAdaptor {
 				}
 				const frontMatter = fileFM.frontmatter;
 
+				// Check if file should be published
+				// If folderToPublish is empty or ".", it matches all files (root sync)
+				// Otherwise, check if file path starts with the folder path
+				const folderToPublish =
+					this.settings.folderToPublish?.trim() || "";
+				const matchesFolder =
+					folderToPublish === "" ||
+					folderToPublish === "." ||
+					file.path.startsWith(folderToPublish);
+
 				if (
-					(file.path.startsWith(this.settings.folderToPublish) &&
+					(matchesFolder &&
 						(!frontMatter ||
 							frontMatter["connie-publish"] !== false)) ||
 					(frontMatter && frontMatter["connie-publish"] === true)

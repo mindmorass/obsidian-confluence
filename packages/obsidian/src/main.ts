@@ -59,12 +59,19 @@ export default class ConfluencePlugin extends Plugin {
 		await this.loadSettings();
 		const { vault, metadataCache, workspace } = this.app;
 		this.workspace = workspace;
-		this.adaptor = new ObsidianAdaptor(
-			vault,
-			metadataCache,
-			this.settings,
-			this.app,
-		);
+
+		// If adaptor already exists, update its settings reference instead of recreating
+		// This ensures the adaptor always uses the latest settings
+		if (this.adaptor) {
+			this.adaptor.updateSettings(this.settings);
+		} else {
+			this.adaptor = new ObsidianAdaptor(
+				vault,
+				metadataCache,
+				this.settings,
+				this.app,
+			);
+		}
 
 		const mermaidItems = await this.getMermaidItems();
 		const mermaidRenderer = new ElectronMermaidRenderer(
@@ -93,7 +100,12 @@ export default class ConfluencePlugin extends Plugin {
 			},
 		});
 
+		// Always create a new StaticSettingsLoader with the current settings
+		// This ensures the publisher always uses the latest settings
 		const settingsLoader = new StaticSettingsLoader(this.settings);
+
+		// If publisher already exists, we need to recreate it with the new settings loader
+		// since Publisher stores the settingsLoader reference
 		this.publisher = new Publisher(
 			this.adaptor,
 			settingsLoader,
