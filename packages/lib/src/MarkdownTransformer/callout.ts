@@ -156,13 +156,13 @@ export function panel(state: StateCore): boolean {
 						tokenToReturn = new state.Token("expand_open", "", 0);
 						tokenToReturn.markup = ">";
 						tokenToReturn.block = true;
-						tokenToReturn.nesting = 1;
+						tokenToReturn.nesting = -1; // -1 for opening tokens
 						tokenToReturn.attrs = [["title", blockTitle]];
 					} else {
 						tokenToReturn = new state.Token("panel_open", "", 0);
 						tokenToReturn.markup = ">";
 						tokenToReturn.block = true;
-						tokenToReturn.nesting = 1;
+						tokenToReturn.nesting = -1; // -1 for opening tokens
 						tokenToReturn.attrs = getPanelAttributes(calloutType);
 					}
 
@@ -172,13 +172,16 @@ export function panel(state: StateCore): boolean {
 
 			// Find the matching blockquote_open for this close token
 			if (token.type === "blockquote_close") {
-				// Search backwards to find the matching open tag using nesting
+				// Search backwards to find the matching open tag using nesting level
+				// Use the nesting property to correctly match open/close pairs
 				let nestLevel = 1;
 				for (let i = currentIndex - 1; i >= 0; i--) {
 					const tokenToCheck = allTokens[i];
 					if (!tokenToCheck) {
 						continue;
 					}
+
+					// Use nesting property: -1 for open, +1 for close, 0 for self-closing
 					if (tokenToCheck.type === "blockquote_close") {
 						nestLevel++;
 					} else if (tokenToCheck.type === "blockquote_open") {
