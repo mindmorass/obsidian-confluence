@@ -200,6 +200,7 @@ export function panel(state: StateCore): boolean {
 			}
 
 			// Check if this is the callout title token (the token containing [!INFO] etc.)
+			// Only modify the token if it's being returned (not the original token)
 			for (const [, metadata] of calloutMetadata.entries()) {
 				if (currentIndex === metadata.calloutStartIndex) {
 					const check = token.content.match(panelRegex);
@@ -207,21 +208,36 @@ export function panel(state: StateCore): boolean {
 						const calloutTitle = capitalizeFirstLetter(
 							metadata.blockTitle,
 						);
-						token.content = token.content.replace(
+						// Create a copy of the token to avoid mutating the original
+						if (tokenToReturn === token) {
+							tokenToReturn = Object.assign({}, token);
+						}
+						tokenToReturn.content = tokenToReturn.content.replace(
 							check[0],
 							calloutTitle,
 						);
-						if (token.children) {
-							for (let i = 0; i < token.children.length; i++) {
-								const child = token.children[i];
-								if (child && child.content.includes(check[0])) {
-									child.content = child.content.replace(
-										check[0],
-										calloutTitle,
-									);
-									break;
-								}
-							}
+						if (tokenToReturn.children) {
+							// Clone children array to avoid mutating original
+							tokenToReturn.children = tokenToReturn.children.map(
+								(child) => {
+									if (
+										child &&
+										child.content.includes(check[0])
+									) {
+										const clonedChild = Object.assign(
+											{},
+											child,
+										);
+										clonedChild.content =
+											clonedChild.content.replace(
+												check[0],
+												calloutTitle,
+											);
+										return clonedChild;
+									}
+									return child;
+								},
+							);
 						}
 					}
 					break;

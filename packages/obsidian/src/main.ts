@@ -202,6 +202,26 @@ export default class ConfluencePlugin extends Plugin {
 	override async onload() {
 		await this.init();
 
+		// Register property types for frontmatter properties
+		// This ensures Obsidian knows the correct types for these properties
+		// Note: registerPropertyType may not be in the TypeScript definitions
+		// but should be available at runtime in Obsidian
+		try {
+			const metadataCache = this.app.metadataCache as any;
+			if (
+				metadataCache &&
+				typeof metadataCache.registerPropertyType === "function"
+			) {
+				metadataCache.registerPropertyType("connie-publish", "number");
+				metadataCache.registerPropertyType("connie-page-id", "number");
+			}
+		} catch (error) {
+			// If property type registration fails, it's not critical
+			// Obsidian will infer types from usage, though users may need to
+			// manually correct types in their vault's .obsidian/types.json file
+			console.warn("Failed to register property types:", error);
+		}
+
 		this.addRibbonIcon("cloud", "Publish to Confluence", async () => {
 			if (this.isSyncing) {
 				new Notice("Syncing already on going");
