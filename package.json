@@ -13,11 +13,12 @@
       "test": "npm test -ws --if-present"
    },
    "devDependencies": {
+      "@pact-foundation/pact": "^16.0.4",
       "@types/node": "^16.11.6",
       "@typescript-eslint/eslint-plugin": "^6.3.0",
       "@typescript-eslint/parser": "^6.3.0",
       "builtin-modules": "3.3.0",
-      "esbuild": "0.18.14",
+      "esbuild": "^0.27.2",
       "esbuild-node-externals": "^1.8.0",
       "esbuild-plugin-copy": "^2.1.1",
       "eslint": "^8.46.0",
@@ -39,5 +40,24 @@
    ],
    "lint-staged": {
       "packages/**/*.ts": "prettier --write"
+   },
+   "overrides": {
+      "prosemirror-model": "1.19.3",
+      "@sentry/browser": "10.32.1",
+      "path-to-regexp": "8.3.0",
+      "pdfjs-dist": "5.4.449",
+      "prismjs": "1.30.0",
+      "refractor": "^4.8.0",
+      "@atlaskit/editor-common": {
+         "@sentry/browser": "10.32.1"
+      },
+      "@atlaskit/media-viewer": {
+         "pdfjs-dist": "5.4.449"
+      },
+      "@atlaskit/media-card": {
+         "@atlaskit/media-viewer": {
+            "pdfjs-dist": "5.4.449"
+         }
+      }
    }
 }

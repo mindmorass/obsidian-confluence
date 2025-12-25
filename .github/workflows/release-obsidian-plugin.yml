@@ -1,0 +1,81 @@
+name: Release Obsidian Plugin
+
+on:
+    push:
+        tags:
+            - "obsidian-plugin-v*"
+
+permissions:
+    contents: write
+
+jobs:
+    build-and-release:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Build obsidian plugin
+              working-directory: packages/obsidian
+              run: npm run build
+
+            - name: Extract version from tag
+              id: get_version
+              run: |
+                  VERSION=${GITHUB_REF#refs/tags/obsidian-plugin-v}
+                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+                  echo "Building release for version: $VERSION"
+
+            - name: Verify build artifacts
+              working-directory: packages/obsidian
+              run: |
+                  if [ ! -f "dist/main.js" ]; then
+                    echo "Error: dist/main.js not found after build"
+                    exit 1
+                  fi
+                  if [ ! -f "manifest.json" ]; then
+                    echo "Error: manifest.json not found"
+                    exit 1
+                  fi
+
+                  # Verify manifest version matches tag
+                  MANIFEST_VERSION=$(jq -r '.version' manifest.json)
+                  TAG_VERSION="${{ steps.get_version.outputs.version }}"
+                  if [ "$MANIFEST_VERSION" != "$TAG_VERSION" ]; then
+                    echo "Error: manifest.json version ($MANIFEST_VERSION) does not match tag version ($TAG_VERSION)"
+                    exit 1
+                  fi
+                  echo "Build artifacts verified successfully"
+
+            - name: Create release archive
+              working-directory: packages/obsidian
+              run: |
+                  mkdir -p release
+                  cp dist/main.js release/
+                  cp manifest.json release/
+                  cd release
+                  zip -r ../confluence-integration-${{ steps.get_version.outputs.version }}.zip .
+                  cd ..
+                  tar -czf confluence-integration-${{ steps.get_version.outputs.version }}.tar.gz -C release .
+
+            - name: Create Release
+              uses: softprops/action-gh-release@v1
+              with:
+                  files: |
+                      packages/obsidian/dist/main.js
+                      packages/obsidian/manifest.json
+                      packages/obsidian/confluence-integration-${{ steps.get_version.outputs.version }}.zip
+                      packages/obsidian/confluence-integration-${{ steps.get_version.outputs.version }}.tar.gz
+                  generate_release_notes: true
+                  draft: false
+                  prerelease: false

@@ -31,6 +31,7 @@
     "license": "Apache 2.0",
     "devDependencies": {
         "@jest/globals": "^29.7.0",
+        "@pact-foundation/pact": "^16.0.4",
         "@types/lodash-es": "^4.17.9",
         "@types/markdown-it": "^13.0.0",
         "@types/prosemirror-model": "1.17.0",
@@ -45,9 +46,10 @@
     "dependencies": {
         "@atlaskit/adf-schema": "^25.6.4",
         "@atlaskit/adf-utils": "^19.0.0",
-        "@atlaskit/editor-common": "^75.5.2",
+        "@atlaskit/editor-common": "^74.0.1",
         "@atlaskit/editor-json-transformer": "^8.10.9",
         "confluence.js": "^1.6.3",
+        "esbuild": "0.27.2",
         "formdata-node": "^5.0.1",
         "glob": "^10.2.7",
         "gray-matter": "^4.0.3",
@@ -55,6 +57,7 @@
         "lodash-es": "^4.17.21",
         "markdown-it-table": "^4.1.1",
         "markdown-table": "^3.0.3",
+        "mermaid": "10.9.5",
         "prosemirror-markdown": "^1.11.0",
         "prosemirror-model": "1.19.3",
         "sort-any": "^4.0.5",

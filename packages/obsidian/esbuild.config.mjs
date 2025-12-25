@@ -1,8 +1,6 @@
 import esbuild from "esbuild";
 import process from "process";
-import builtins from 'builtin-modules'
-import { writeFileSync } from 'fs';
-
+import builtins from "builtin-modules";
 
 const banner =
 `/*
@@ -13,7 +11,7 @@ if you want to view the source, please visit the github repository of this plugi
 
 const prod = (process.argv[2] === 'production');
 
-const buildConfig = {
+const context = await esbuild.context({
 	banner: {
 		js: banner,
 	},
@@ -33,10 +31,9 @@ const buildConfig = {
 		'@lezer/common',
 		'@lezer/highlight',
 		'@lezer/lr',
-		...builtins
-	],
+		...builtins],
 	format: 'cjs',
-	target: 'chrome106',
+	target: 'es2018',
 	logLevel: "info",
 	sourcemap: prod ? false : 'inline',
 	treeShaking: true,
@@ -44,12 +41,11 @@ const buildConfig = {
 	mainFields: ['module', 'main'],
 	minify: true,
 	metafile: true,
-};
+});
 
 if (prod) {
-	const buildResult = await esbuild.build(buildConfig);
-	writeFileSync("./dist/meta.json", JSON.stringify(buildResult.metafile));
+	await context.rebuild();
+	process.exit(0);
 } else {
-	const context = await esbuild.context(buildConfig);
 	await context.watch();
 }

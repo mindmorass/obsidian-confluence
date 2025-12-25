@@ -18,3 +18,7 @@ data.json
 .DS_Store
 
 dist/
+
+# Pact contract testing
+pact/
+**/pact/

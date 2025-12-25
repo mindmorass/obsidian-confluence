@@ -23,7 +23,8 @@ export function parseMarkdownToADF(
 	confluenceBaseUrl: string,
 ) {
 	const prosenodes = transformer.parse(markdown);
-	const adfNodes = serializer.encode(prosenodes);
+	// Type cast to work around prosemirror-model version mismatch
+	const adfNodes = serializer.encode(prosenodes as any);
 	const nodes = processADF(adfNodes, confluenceBaseUrl);
 	return nodes;
 }
