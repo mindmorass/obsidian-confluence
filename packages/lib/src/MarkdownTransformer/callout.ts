@@ -99,6 +99,8 @@ export function panel(state: StateCore): boolean {
 
 	// Track tokens that were skipped (empty after removing callout pattern)
 	const skippedTokens = new Set<number>();
+	// Track indices of callout tokens that were skipped, so we can skip following break tokens
+	const skippedCalloutIndices = new Set<number>();
 
 	// First pass: process tokens and mark which ones are skipped
 	const firstPassTokens = state.tokens.reduce(
@@ -291,10 +293,34 @@ export function panel(state: StateCore): boolean {
 						if (!hasContent && !hasChildren) {
 							// Mark this token as skipped so we can also skip its paragraph
 							skippedTokens.add(currentIndex);
+							skippedCalloutIndices.add(currentIndex);
 							return previousTokens;
 						}
 					}
 					break;
+				}
+			}
+
+			// Skip hardbreak/softbreak tokens that appear immediately after a skipped callout token
+			// These create unwanted <br> tags in the rendered output
+			if (
+				(token.type === "hardbreak" || token.type === "softbreak") &&
+				currentIndex > 0
+			) {
+				// Check if the previous token was a skipped callout
+				const prevTokenIndex = currentIndex - 1;
+				if (skippedCalloutIndices.has(prevTokenIndex)) {
+					return previousTokens; // Skip this break token
+				}
+				// Also check a few tokens back in case there were paragraph tokens in between
+				for (
+					let i = currentIndex - 1;
+					i >= Math.max(0, currentIndex - 5);
+					i--
+				) {
+					if (skippedCalloutIndices.has(i)) {
+						return previousTokens; // Skip this break token
+					}
 				}
 			}
 
