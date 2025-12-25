@@ -9,7 +9,6 @@ import { Schema, Node as PMNode } from "prosemirror-model";
 import { markdownItMedia } from "./media";
 import myTokenizer from "./callout";
 import wikilinksPlugin from "./wikilinks";
-import tocPlugin from "./toc";
 
 function filterMdToPmSchemaMapping(schema: Schema, map: any) {
 	return Object.keys(map).reduce((newMap: any, key: string) => {
@@ -132,41 +131,6 @@ const mdToPmMapping = {
 			};
 		},
 	},
-	toc: {
-		block: "bodiedExtension",
-		attrs: () => {
-			// Generate a unique localId for the TOC macro
-			const localId = `toc-${Date.now()}-${Math.random()
-				.toString(36)
-				.substr(2, 9)}`;
-			return {
-				extensionType: "com.atlassian.confluence.macro.core",
-				extensionKey: "toc",
-				parameters: {
-					macroParams: {
-						outline: { value: "clear" },
-						maxLevel: { value: "7" },
-						indent: { value: "20px" },
-						minLevel: { value: "1" },
-						type: { value: "list" },
-						class: { value: "toc" },
-						style: { value: "disc" },
-						exclude: { value: "" },
-						printable: { value: "true" },
-						include: { value: "" },
-					},
-					macroMetadata: {
-						macroId: {
-							value: "toc",
-						},
-						schemaVersion: { value: "1" },
-						title: "Table of Contents",
-					},
-				},
-				localId: localId,
-			};
-		},
-	},
 };
 
 const md = MarkdownIt("commonmark", {
@@ -191,10 +155,8 @@ export class MarkdownTransformer implements Transformer<Markdown> {
 			tokenizer.use(myTokenizer);
 		}
 
-		// Enable TOC plugin if bodiedExtension is supported
-		if (schema.nodes["bodiedExtension"]) {
-			tokenizer.use(tocPlugin);
-		}
+		// TOC is handled post-parsing in processADF, not during markdown parsing
+		// This avoids issues with ProseMirror's MarkdownParser not recognizing custom tokens
 
 		tokenizer.use(wikilinksPlugin);
 

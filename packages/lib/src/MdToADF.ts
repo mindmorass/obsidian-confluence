@@ -29,7 +29,76 @@ export function parseMarkdownToADF(
 	return nodes;
 }
 
+// Helper function to check if a paragraph contains only [toc] or <!-- toc -->
+function isTocParagraph(node: any): boolean {
+	if (node.type !== "paragraph" || !node.content) {
+		return false;
+	}
+
+	// Check if paragraph contains only text nodes with [toc] or <!-- toc -->
+	const textContent = node.content
+		.filter((child: any) => child.type === "text")
+		.map((child: any) => child.text || "")
+		.join("")
+		.trim();
+
+	// Match [toc] or <!-- toc --> (case insensitive, with optional whitespace)
+	const tocRegex = /^\[toc\]$/i;
+	const tocCommentRegex = /^<!--\s*toc\s*-->$/i;
+
+	return tocRegex.test(textContent) || tocCommentRegex.test(textContent);
+}
+
+// Helper function to create a TOC bodiedExtension node
+function createTocExtensionNode(): any {
+	const localId = `toc-${Date.now()}-${Math.random()
+		.toString(36)
+		.substr(2, 9)}`;
+
+	return {
+		type: "bodiedExtension",
+		attrs: {
+			extensionType: "com.atlassian.confluence.macro.core",
+			extensionKey: "toc",
+			parameters: {
+				macroParams: {
+					outline: { value: "clear" },
+					maxLevel: { value: "7" },
+					indent: { value: "20px" },
+					minLevel: { value: "1" },
+					type: { value: "list" },
+					class: { value: "toc" },
+					style: { value: "disc" },
+					exclude: { value: "" },
+					printable: { value: "true" },
+					include: { value: "" },
+				},
+				macroMetadata: {
+					macroId: {
+						value: "toc",
+					},
+					schemaVersion: { value: "1" },
+					title: "Table of Contents",
+				},
+			},
+			localId: localId,
+		},
+		content: [],
+	};
+}
+
 function processADF(adf: JSONDocNode, confluenceBaseUrl: string): JSONDocNode {
+	// First pass: convert TOC paragraphs to bodiedExtension nodes
+	// We need to process the content array directly since traverse doesn't let us replace nodes
+	if (adf.content && Array.isArray(adf.content)) {
+		adf.content = adf.content.map((node: any) => {
+			if (isTocParagraph(node)) {
+				return createTocExtensionNode();
+			}
+			return node;
+		});
+	}
+
 	const olivia = traverse(adf, {
 		text: (node, _parent) => {
 			if (_parent.parent?.node?.type == "listItem" && node.text) {
