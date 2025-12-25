@@ -86,10 +86,6 @@ export default function calloutPlugin(md: MarkdownIt): void {
 	md.core.ruler.push("expand", () => false);
 }
 
-function capitalizeFirstLetter(string: string) {
-	return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
 export function panel(state: StateCore): boolean {
 	// Track callout metadata for each blockquote_open token by its index
 	const calloutMetadata = new Map<
@@ -199,50 +195,11 @@ export function panel(state: StateCore): boolean {
 				}
 			}
 
-			// Check if this is the callout title token (the token containing [!INFO] etc.)
-			// Only modify the token if it's being returned (not the original token)
-			for (const [, metadata] of calloutMetadata.entries()) {
-				if (currentIndex === metadata.calloutStartIndex) {
-					const check = token.content.match(panelRegex);
-					if (check && check.length > 0) {
-						const calloutTitle = capitalizeFirstLetter(
-							metadata.blockTitle,
-						);
-						// Create a copy of the token to avoid mutating the original
-						if (tokenToReturn === token) {
-							tokenToReturn = Object.assign({}, token);
-						}
-						tokenToReturn.content = tokenToReturn.content.replace(
-							check[0],
-							calloutTitle,
-						);
-						if (tokenToReturn.children) {
-							// Clone children array to avoid mutating original
-							tokenToReturn.children = tokenToReturn.children.map(
-								(child) => {
-									if (
-										child &&
-										child.content.includes(check[0])
-									) {
-										const clonedChild = Object.assign(
-											{},
-											child,
-										);
-										clonedChild.content =
-											clonedChild.content.replace(
-												check[0],
-												calloutTitle,
-											);
-										return clonedChild;
-									}
-									return child;
-								},
-							);
-						}
-					}
-					break;
-				}
-			}
+			// Note: We don't modify the token content containing [!INFO] anymore
+			// The panel title is already set via token attributes, and modifying
+			// token content can cause artifacts in the markdown files.
+			// The original callout syntax will remain in the token but won't affect
+			// the ADF conversion since we're converting blockquote to panel tokens.
 
 			return [...previousTokens, tokenToReturn];
 		},
