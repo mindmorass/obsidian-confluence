@@ -97,7 +97,11 @@ export function panel(state: StateCore): boolean {
 		}
 	>();
 
-	const newTokens = state.tokens.reduce(
+	// Track tokens that were skipped (empty after removing callout pattern)
+	const skippedTokens = new Set<number>();
+
+	// First pass: process tokens and mark which ones are skipped
+	const firstPassTokens = state.tokens.reduce(
 		(
 			previousTokens: Token[],
 			token: Token,
@@ -248,6 +252,8 @@ export function panel(state: StateCore): boolean {
 							tokenToReturn.children &&
 							tokenToReturn.children.length > 0;
 						if (!hasContent && !hasChildren) {
+							// Mark this token as skipped so we can also skip its paragraph
+							skippedTokens.add(currentIndex);
 							return previousTokens;
 						}
 					}
@@ -256,6 +262,125 @@ export function panel(state: StateCore): boolean {
 			}
 
 			return [...previousTokens, tokenToReturn];
+		},
+		[] as Token[],
+	);
+
+	// Second pass: remove empty paragraphs (paragraph_open/paragraph_close pairs)
+	// that only contain skipped tokens
+	const newTokens = firstPassTokens.reduce(
+		(
+			previousTokens: Token[],
+			token: Token,
+			currentIndex: number,
+			firstPassTokensArray: Token[],
+		) => {
+			// Skip paragraph_open if the paragraph only contains skipped tokens
+			if (token.type === "paragraph_open") {
+				// Find the matching paragraph_close
+				let paraCloseIndex = -1;
+				let nestLevel = 1;
+				for (
+					let i = currentIndex + 1;
+					i < firstPassTokensArray.length;
+					i++
+				) {
+					const nextToken = firstPassTokensArray[i];
+					if (!nextToken) break;
+					if (nextToken.type === "paragraph_open") {
+						nestLevel++;
+					} else if (nextToken.type === "paragraph_close") {
+						nestLevel--;
+						if (nestLevel === 0) {
+							paraCloseIndex = i;
+							break;
+						}
+					}
+				}
+				// Check if the paragraph only contains skipped tokens or is empty
+				if (paraCloseIndex >= 0) {
+					let hasNonSkippedContent = false;
+					for (let i = currentIndex + 1; i < paraCloseIndex; i++) {
+						const tokenInPara = firstPassTokensArray[i];
+						if (!tokenInPara) continue;
+						// Skip paragraph_open/close and other structural tokens
+						if (
+							tokenInPara.type === "paragraph_open" ||
+							tokenInPara.type === "paragraph_close"
+						) {
+							continue;
+						}
+						// Check if this token has content and wasn't skipped
+						if (
+							(tokenInPara.content &&
+								tokenInPara.content.trim() !== "") ||
+							(tokenInPara.children &&
+								tokenInPara.children.length > 0)
+						) {
+							// Check if this token index wasn't in the original skipped set
+							// We need to check against original indices, but we're working with firstPassTokens
+							// For now, just check if the token has content
+							hasNonSkippedContent = true;
+							break;
+						}
+					}
+					// If paragraph has no non-skipped content, skip both open and close
+					if (!hasNonSkippedContent) {
+						// Mark the close to be skipped too
+						// We'll handle this by tracking which closes to skip
+						return previousTokens; // Skip paragraph_open
+					}
+				}
+			}
+
+			// Skip paragraph_close if its matching paragraph_open was skipped
+			if (token.type === "paragraph_close") {
+				// Find the matching paragraph_open
+				let paraOpenIndex = -1;
+				let nestLevel = 1;
+				for (let i = currentIndex - 1; i >= 0; i--) {
+					const prevToken = firstPassTokensArray[i];
+					if (!prevToken) break;
+					if (prevToken.type === "paragraph_close") {
+						nestLevel++;
+					} else if (prevToken.type === "paragraph_open") {
+						nestLevel--;
+						if (nestLevel === 0) {
+							paraOpenIndex = i;
+							break;
+						}
+					}
+				}
+				// Check if the paragraph only contains skipped/empty content
+				if (paraOpenIndex >= 0) {
+					let hasNonSkippedContent = false;
+					for (let i = paraOpenIndex + 1; i < currentIndex; i++) {
+						const tokenInPara = firstPassTokensArray[i];
+						if (!tokenInPara) continue;
+						if (
+							tokenInPara.type === "paragraph_open" ||
+							tokenInPara.type === "paragraph_close"
+						) {
+							continue;
+						}
+						if (
+							(tokenInPara.content &&
+								tokenInPara.content.trim() !== "") ||
+							(tokenInPara.children &&
+								tokenInPara.children.length > 0)
+						) {
+							hasNonSkippedContent = true;
+							break;
+						}
+					}
+					// If paragraph has no content, skip the close too
+					if (!hasNonSkippedContent) {
+						return previousTokens; // Skip paragraph_close
+					}
+				}
+			}
+
+			return [...previousTokens, token];
 		},
 		[] as Token[],
 	);

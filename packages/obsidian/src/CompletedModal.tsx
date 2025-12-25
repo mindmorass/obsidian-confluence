@@ -19,6 +19,16 @@ export interface UploadResultsProps {
 }
 
 const CompletedView: React.FC<UploadResultsProps> = ({ uploadResults }) => {
+  // Defensive checks - ensure we always have valid data
+  if (!uploadResults) {
+    return (
+      <div className="upload-results">
+        <h1>Confluence Publish</h1>
+        <p>No upload results available.</p>
+      </div>
+    );
+  }
+
   const { errorMessage, failedFiles, filesUploadResult } = uploadResults;
   const [expanded, setExpanded] = useState(false);
 
@@ -28,8 +38,11 @@ const CompletedView: React.FC<UploadResultsProps> = ({ uploadResults }) => {
     labels: { same: 0, updated: 0 },
   };
 
-  if (filesUploadResult && Array.isArray(filesUploadResult)) {
-    filesUploadResult.forEach((result) => {
+  const safeFilesUploadResult = filesUploadResult || [];
+  const safeFailedFiles = failedFiles || [];
+
+  if (Array.isArray(safeFilesUploadResult)) {
+    safeFilesUploadResult.forEach((result) => {
       if (result) {
         if (result.contentResult) {
           countResults.content[result.contentResult as "same" | "updated"]++;
@@ -45,11 +58,13 @@ const CompletedView: React.FC<UploadResultsProps> = ({ uploadResults }) => {
   }
 
   const renderUpdatedFiles = (type: "content" | "image" | "label") => {
-    return filesUploadResult
-      .filter((result) => result[`${type}Result`] === "updated")
-      .map((result, index) => (
+    return safeFilesUploadResult
+      .filter((result: UploadAdfFileResult) => result && result[`${type}Result`] === "updated")
+      .map((result: UploadAdfFileResult, index: number) => (
         <li key={index}>
-          <a href={result.adfFile.pageUrl}>{result.adfFile.absoluteFilePath}</a>
+          <a href={result.adfFile?.pageUrl || "#"}>
+            {result.adfFile?.absoluteFilePath || "Unknown file"}
+          </a>
         </li>
       ));
   };
@@ -68,17 +83,17 @@ const CompletedView: React.FC<UploadResultsProps> = ({ uploadResults }) => {
         <>
           <div className="successful-uploads">
             <h3>Successful Uploads</h3>
-            <p>{filesUploadResult.length} file(s) uploaded successfully.</p>
+            <p>{safeFilesUploadResult.length} file(s) uploaded successfully.</p>
           </div>
 
-          {failedFiles.length > 0 && (
+          {safeFailedFiles.length > 0 && (
             <div className="failed-uploads">
               <h3>Failed Uploads</h3>
-              <p>{failedFiles.length} file(s) failed to upload.</p>
+              <p>{safeFailedFiles.length} file(s) failed to upload.</p>
               <ul>
-                {failedFiles.map((file, index) => (
+                {safeFailedFiles.map((file: FailedFile, index: number) => (
                   <li key={index}>
-                    <strong>{file.fileName}</strong>: {file.reason}
+                    <strong>{file.fileName || "Unknown"}</strong>: {file.reason || "Unknown error"}
                   </li>
                 ))}
               </ul>
@@ -140,7 +155,6 @@ const CompletedView: React.FC<UploadResultsProps> = ({ uploadResults }) => {
 
 export class CompletedModal extends Modal {
   uploadResults: UploadResultsProps;
-  root?: any; // React 18 root instance
 
   constructor(app: App, uploadResults: UploadResultsProps) {
     super(app);
@@ -149,38 +163,34 @@ export class CompletedModal extends Modal {
 
   override onOpen() {
     const { contentEl } = this;
-    // Try React 18 createRoot first, fallback to render for compatibility
+    // Clear any existing content
+    contentEl.empty();
+    
+    // Use ReactDOM.render (consistent with ConfluencePerPageForm)
+    // React 18 createRoot may not work correctly in Obsidian's environment
     try {
-      const reactDOM = ReactDOM as any;
-      if (reactDOM.createRoot) {
-        const root = reactDOM.createRoot(contentEl);
-        root.render(React.createElement(CompletedView, this.uploadResults));
-        this.root = root;
-      } else {
-        ReactDOM.render(
-          React.createElement(CompletedView, this.uploadResults),
-          contentEl,
-        );
-      }
-    } catch (error) {
-      // Fallback to render if createRoot fails
-      console.warn("Failed to use createRoot, falling back to render:", error);
       ReactDOM.render(
         React.createElement(CompletedView, this.uploadResults),
         contentEl,
       );
+    } catch (error) {
+      console.error("Failed to render CompletedModal:", error);
+      // Fallback: show error message directly in the modal
+      contentEl.createEl("h2", { text: "Confluence Publish" });
+      contentEl.createEl("p", {
+        text: `Error rendering upload results: ${error instanceof Error ? error.message : String(error)}`,
+      });
+      if (this.uploadResults.uploadResults.errorMessage) {
+        contentEl.createEl("p", {
+          text: `Error: ${this.uploadResults.uploadResults.errorMessage}`,
+        });
+      }
     }
   }
 
   override onClose() {
     const { contentEl } = this;
-    // Unmount React 18 root if it exists, otherwise use legacy unmount
-    if (this.root) {
-      this.root.unmount();
-      this.root = undefined;
-    } else {
-      ReactDOM.unmountComponentAtNode(contentEl);
-    }
+    ReactDOM.unmountComponentAtNode(contentEl);
     contentEl.empty();
   }
 }
