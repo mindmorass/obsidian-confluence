@@ -62,30 +62,29 @@ export default class ObsidianAdaptor implements LoaderAdaptor {
 					matchesFolder = true;
 				} else {
 					// Check if file is directly in the folder (not in subfolders)
-					// We check if the file path starts with the folder path, and the
-					// remaining part (after the folder path) doesn't contain a "/"
-					// This ensures files in subfolders are excluded
+					// Use file.parent?.path for more reliable matching
+					const fileParentPath = file.parent?.path || "";
 					const normalizedFolderPath = folderToPublish.replace(
 						/\/$/,
 						"",
 					);
-					const normalizedFilePath = file.path.replace(/\/$/, "");
+					const normalizedParentPath = fileParentPath.replace(
+						/\/$/,
+						"",
+					);
 
-					if (normalizedFilePath.startsWith(normalizedFolderPath)) {
-						// Get the part of the path after the folder path
-						const pathAfterFolder = normalizedFilePath.substring(
-							normalizedFolderPath.length,
-						);
-						// Remove leading slash if present
-						const remainingPath = pathAfterFolder.replace(
-							/^\//,
-							"",
-						);
-						// If remaining path doesn't contain "/", it's directly in the folder
-						// (it's just the filename)
-						matchesFolder = !remainingPath.includes("/");
-					} else {
-						matchesFolder = false;
+					// Exact match means file is directly in the folder
+					matchesFolder =
+						normalizedParentPath === normalizedFolderPath;
+
+					// Debug logging (remove after testing)
+					if (!matchesFolder && fileParentPath) {
+						console.log("Folder matching:", {
+							folderToPublish: normalizedFolderPath,
+							fileParentPath: normalizedParentPath,
+							filePath: file.path,
+							matches: matchesFolder,
+						});
 					}
 				}
 
