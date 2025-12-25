@@ -195,13 +195,63 @@ export function panel(state: StateCore): boolean {
 				}
 			}
 
-			// Skip the token containing the callout pattern (e.g., [!INFO], [!WARNING])
+			// Remove the callout pattern (e.g., [!INFO], [!WARNING]) from token content
 			// The panel type is already set via token attributes, so we don't need
-			// the callout label text in the rendered ADF
+			// the callout label text in the rendered ADF, but we want to keep any other content
 			for (const [, metadata] of calloutMetadata.entries()) {
 				if (currentIndex === metadata.calloutStartIndex) {
-					// This is the token with the callout pattern - skip it
-					return previousTokens;
+					// This is the token with the callout pattern
+					const check = token.content.match(panelRegex);
+					if (check && check.length > 0) {
+						// Clone the token to avoid mutating the original
+						if (tokenToReturn === token) {
+							tokenToReturn = Object.assign({}, token);
+						}
+						// Remove the callout pattern from the content, but keep everything else
+						tokenToReturn.content = tokenToReturn.content
+							.replace(check[0], "")
+							.trim();
+
+						// Also check and remove from child tokens if they exist
+						if (
+							tokenToReturn.children &&
+							tokenToReturn.children.length > 0
+						) {
+							tokenToReturn.children = tokenToReturn.children.map(
+								(child) => {
+									if (
+										child &&
+										child.content &&
+										child.content.includes(check[0])
+									) {
+										const clonedChild = Object.assign(
+											{},
+											child,
+										);
+										clonedChild.content =
+											clonedChild.content
+												.replace(check[0], "")
+												.trim();
+										return clonedChild;
+									}
+									return child;
+								},
+							);
+						}
+
+						// If the token has no content left after removing the pattern, skip it
+						// But only if there are no children or children are also empty
+						const hasContent =
+							tokenToReturn.content &&
+							tokenToReturn.content !== "";
+						const hasChildren =
+							tokenToReturn.children &&
+							tokenToReturn.children.length > 0;
+						if (!hasContent && !hasChildren) {
+							return previousTokens;
+						}
+					}
+					break;
 				}
 			}
 

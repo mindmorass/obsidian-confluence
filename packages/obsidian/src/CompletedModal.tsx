@@ -28,11 +28,21 @@ const CompletedView: React.FC<UploadResultsProps> = ({ uploadResults }) => {
     labels: { same: 0, updated: 0 },
   };
 
-  filesUploadResult.forEach((result) => {
-    countResults.content[result.contentResult]++;
-    countResults.images[result.imageResult]++;
-    countResults.labels[result.labelResult]++;
-  });
+  if (filesUploadResult && Array.isArray(filesUploadResult)) {
+    filesUploadResult.forEach((result) => {
+      if (result) {
+        if (result.contentResult) {
+          countResults.content[result.contentResult as "same" | "updated"]++;
+        }
+        if (result.imageResult) {
+          countResults.images[result.imageResult as "same" | "updated"]++;
+        }
+        if (result.labelResult) {
+          countResults.labels[result.labelResult as "same" | "updated"]++;
+        }
+      }
+    });
+  }
 
   const renderUpdatedFiles = (type: "content" | "image" | "label") => {
     return filesUploadResult
@@ -130,6 +140,7 @@ const CompletedView: React.FC<UploadResultsProps> = ({ uploadResults }) => {
 
 export class CompletedModal extends Modal {
   uploadResults: UploadResultsProps;
+  root?: any; // React 18 root instance
 
   constructor(app: App, uploadResults: UploadResultsProps) {
     super(app);
@@ -138,15 +149,38 @@ export class CompletedModal extends Modal {
 
   override onOpen() {
     const { contentEl } = this;
-    ReactDOM.render(
-      React.createElement(CompletedView, this.uploadResults),
-      contentEl,
-    );
+    // Try React 18 createRoot first, fallback to render for compatibility
+    try {
+      const reactDOM = ReactDOM as any;
+      if (reactDOM.createRoot) {
+        const root = reactDOM.createRoot(contentEl);
+        root.render(React.createElement(CompletedView, this.uploadResults));
+        this.root = root;
+      } else {
+        ReactDOM.render(
+          React.createElement(CompletedView, this.uploadResults),
+          contentEl,
+        );
+      }
+    } catch (error) {
+      // Fallback to render if createRoot fails
+      console.warn("Failed to use createRoot, falling back to render:", error);
+      ReactDOM.render(
+        React.createElement(CompletedView, this.uploadResults),
+        contentEl,
+      );
+    }
   }
 
   override onClose() {
     const { contentEl } = this;
-    ReactDOM.unmountComponentAtNode(contentEl);
+    // Unmount React 18 root if it exists, otherwise use legacy unmount
+    if (this.root) {
+      this.root.unmount();
+      this.root = undefined;
+    } else {
+      ReactDOM.unmountComponentAtNode(contentEl);
+    }
     contentEl.empty();
   }
 }
