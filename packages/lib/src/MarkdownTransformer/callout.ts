@@ -242,13 +242,19 @@ export function panel(state: StateCore): boolean {
 							tokenToReturn.children &&
 							tokenToReturn.children.length > 0
 						) {
-							tokenToReturn.children = tokenToReturn.children.map(
-								(child) => {
+							let calloutPatternFoundInChild = false;
+							let calloutPatternChildIndex = -1;
+
+							tokenToReturn.children = tokenToReturn.children
+								.map((child, childIndex) => {
 									if (
 										child &&
 										child.content &&
 										child.content.includes(check[0])
 									) {
+										calloutPatternFoundInChild = true;
+										calloutPatternChildIndex = childIndex;
+
 										const clonedChild = Object.assign(
 											{},
 											child,
@@ -275,11 +281,70 @@ export function panel(state: StateCore): boolean {
 											childBeforePattern +
 											childCleanedAfter
 										).trim();
+
+										// If the child is now empty after removing the pattern, return null to filter it out
+										if (
+											!clonedChild.content ||
+											clonedChild.content === ""
+										) {
+											return null;
+										}
+
 										return clonedChild;
 									}
 									return child;
-								},
-							);
+								})
+								.filter((child) => child !== null) as Token[];
+
+							// After removing the callout pattern, remove any hardBreak/softBreak children
+							// that appear immediately after the callout pattern child
+							if (
+								calloutPatternFoundInChild &&
+								calloutPatternChildIndex >= 0
+							) {
+								// The callout pattern child may have been removed, so check the next child
+								// after the position where it was
+								tokenToReturn.children =
+									tokenToReturn.children.filter(
+										(child, childIndex) => {
+											// If this is a hardBreak/softBreak and it's the first child
+											// (which would be the case if the callout pattern child was removed),
+											// or if it's right after where the callout pattern was, skip it
+											if (
+												(child.type === "hardbreak" ||
+													child.type ===
+														"softbreak") &&
+												(childIndex === 0 ||
+													childIndex ===
+														calloutPatternChildIndex ||
+													childIndex ===
+														calloutPatternChildIndex +
+															1)
+											) {
+												return false;
+											}
+											return true;
+										},
+									);
+							} else {
+								// If we didn't find the pattern in children, still check for leading hardBreaks
+								// This handles the case where the pattern was in the token content itself
+								tokenToReturn.children =
+									tokenToReturn.children.filter(
+										(child, childIndex) => {
+											// Remove hardBreak/softBreak if it's the first child
+											if (
+												(child.type === "hardbreak" ||
+													child.type ===
+														"softbreak") &&
+												childIndex === 0
+											) {
+												return false;
+											}
+											return true;
+										},
+									);
+							}
 						}
 
 						// If the token has no content left after removing the pattern, skip it
