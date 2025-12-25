@@ -223,6 +223,26 @@ function renderADFContent(
 		case "tableCell": {
 			return renderChildrenResult;
 		}
+		case "bodiedExtension": {
+			// Handle TOC macro and other extension nodes
+			if (
+				element.attrs &&
+				element.attrs["extensionKey"] === "toc" &&
+				element.attrs["extensionType"] ===
+					"com.atlassian.confluence.macro.core"
+			) {
+				// Convert TOC macro back to [toc] markdown
+				return "[toc]\n";
+			}
+			// For other extension nodes, we can't convert them back to markdown
+			// Return empty string or a placeholder
+			return "";
+		}
+		case "inlineExtension": {
+			// Handle inline extension nodes (like pagetree)
+			// These typically don't have markdown equivalents
+			return "";
+		}
 		default:
 			console.warn(`Unknown ADFEntity Type ${element.type}`);
 			return new Error(`Unknown ADFEntity Type ${element.type}`);
