@@ -211,10 +211,29 @@ export function panel(state: StateCore): boolean {
 						if (tokenToReturn === token) {
 							tokenToReturn = Object.assign({}, token);
 						}
-						// Remove the callout pattern from the content, but keep everything else
-						tokenToReturn.content = tokenToReturn.content
-							.replace(check[0], "")
-							.trim();
+
+						// Remove the callout pattern and any trailing whitespace/newlines
+						// Use a more aggressive replacement that removes the pattern and any following whitespace
+						const patternMatch = check[0];
+						const beforePattern = tokenToReturn.content.substring(
+							0,
+							tokenToReturn.content.indexOf(patternMatch),
+						);
+						const afterPattern = tokenToReturn.content.substring(
+							tokenToReturn.content.indexOf(patternMatch) +
+								patternMatch.length,
+						);
+
+						// Remove leading whitespace/newlines from afterPattern, but preserve the rest
+						const cleanedAfter = afterPattern.replace(
+							/^[\s\n\r]+/,
+							"",
+						);
+
+						// Combine: beforePattern (should be empty for callouts) + cleanedAfter
+						tokenToReturn.content = (
+							beforePattern + cleanedAfter
+						).trim();
 
 						// Also check and remove from child tokens if they exist
 						if (
@@ -232,10 +251,28 @@ export function panel(state: StateCore): boolean {
 											{},
 											child,
 										);
-										clonedChild.content =
-											clonedChild.content
-												.replace(check[0], "")
-												.trim();
+										const childBeforePattern =
+											clonedChild.content.substring(
+												0,
+												clonedChild.content.indexOf(
+													check[0],
+												),
+											);
+										const childAfterPattern =
+											clonedChild.content.substring(
+												clonedChild.content.indexOf(
+													check[0],
+												) + check[0].length,
+											);
+										const childCleanedAfter =
+											childAfterPattern.replace(
+												/^[\s\n\r]+/,
+												"",
+											);
+										clonedChild.content = (
+											childBeforePattern +
+											childCleanedAfter
+										).trim();
 										return clonedChild;
 									}
 									return child;
@@ -267,7 +304,8 @@ export function panel(state: StateCore): boolean {
 	);
 
 	// Second pass: remove empty paragraphs (paragraph_open/paragraph_close pairs)
-	// that only contain skipped tokens
+	// that only contain skipped tokens, and merge consecutive paragraphs
+	const skippedParagraphOpens = new Set<number>();
 	const newTokens = firstPassTokens.reduce(
 		(
 			previousTokens: Token[],
@@ -326,12 +364,16 @@ export function panel(state: StateCore): boolean {
 					}
 					// If paragraph has no non-skipped content, skip both open and close
 					if (!hasNonSkippedContent) {
-						// Mark the close to be skipped too
-						// We'll handle this by tracking which closes to skip
+						// Mark this paragraph_open as skipped
+						skippedParagraphOpens.add(currentIndex);
 						return previousTokens; // Skip paragraph_open
 					}
 				}
 			}
+
+			// If the previous paragraph_open was skipped, and this is a paragraph_open,
+			// we might want to merge them, but for now just continue normally
+			// The paragraph_close handling below will take care of skipping the matching close
 
 			// Skip paragraph_close if its matching paragraph_open was skipped
 			if (token.type === "paragraph_close") {
@@ -351,7 +393,14 @@ export function panel(state: StateCore): boolean {
 						}
 					}
 				}
-				// Check if the paragraph only contains skipped/empty content
+				// Check if the paragraph_open was skipped
+				if (
+					paraOpenIndex >= 0 &&
+					skippedParagraphOpens.has(paraOpenIndex)
+				) {
+					return previousTokens; // Skip paragraph_close
+				}
+				// Also check if the paragraph only contains skipped/empty content
 				if (paraOpenIndex >= 0) {
 					let hasNonSkippedContent = false;
 					for (let i = paraOpenIndex + 1; i < currentIndex; i++) {

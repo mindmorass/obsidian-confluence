@@ -1,6 +1,6 @@
 import { Modal, App } from "obsidian";
 import ReactDOM from "react-dom";
-import React, { useState } from "react";
+import React from "react";
 import { UploadAdfFileResult } from "@markdown-confluence/lib";
 
 export interface FailedFile {
@@ -30,7 +30,6 @@ const CompletedView: React.FC<UploadResultsProps> = ({ uploadResults }) => {
   }
 
   const { errorMessage, failedFiles, filesUploadResult } = uploadResults;
-  const [expanded, setExpanded] = useState(false);
 
   const countResults = {
     content: { same: 0, updated: 0 },
@@ -127,25 +126,41 @@ const CompletedView: React.FC<UploadResultsProps> = ({ uploadResults }) => {
             </tbody>
           </table>
           <div className="expandable-section">
-            <button onClick={() => setExpanded(!expanded)}>
-              {expanded ? "Collapse" : "Expand"} Updated Files
+            <button
+              id="toggle-updated-files"
+              onClick={(e) => {
+                e.preventDefault();
+                const filesDiv = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                const button = e.target as HTMLElement;
+                if (filesDiv && filesDiv.style.display === "none") {
+                  filesDiv.style.display = "block";
+                  button.textContent = "Collapse Updated Files";
+                } else if (filesDiv) {
+                  filesDiv.style.display = "none";
+                  button.textContent = "Expand Updated Files";
+                }
+              }}
+            >
+              Expand Updated Files
             </button>
-            {expanded && (
-              <div className="updated-files">
-                <div className="updated-content">
-                  <h4>Updated Content</h4>
-                  <ul>{renderUpdatedFiles("content")}</ul>
-                </div>
-                <div className="updated-images">
-                  <h4>Updated Images</h4>
-                  <ul>{renderUpdatedFiles("image")}</ul>
-                </div>
-                <div className="updated-labels">
-                  <h4>Updated Labels</h4>
-                  <ul>{renderUpdatedFiles("label")}</ul>
-                </div>
+            <div
+              className="updated-files"
+              style={{ display: "none" }}
+              id="updated-files-content"
+            >
+              <div className="updated-content">
+                <h4>Updated Content</h4>
+                <ul>{renderUpdatedFiles("content")}</ul>
               </div>
-            )}
+              <div className="updated-images">
+                <h4>Updated Images</h4>
+                <ul>{renderUpdatedFiles("image")}</ul>
+              </div>
+              <div className="updated-labels">
+                <h4>Updated Labels</h4>
+                <ul>{renderUpdatedFiles("label")}</ul>
+              </div>
+            </div>
           </div>
         </>
       )}
