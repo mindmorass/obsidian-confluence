@@ -62,7 +62,7 @@ jobs:
 
       - name: Log in to the Container registry
         if: ${{ steps.release-please.outputs.release_created }}
-        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
