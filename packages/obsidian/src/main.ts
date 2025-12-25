@@ -402,21 +402,16 @@ export default class ConfluencePlugin extends Plugin {
 						view.file.path,
 					)?.frontmatter;
 					const file = view.file;
-					// Check if file is directly in the folder (not in subfolders)
+					// Check if file is in the folder or any subfolder
+					// The folder selection is a parent folder - all files under it should be published
 					const normalizedFolderPath =
 						this.settings.folderToPublish.replace(/\/$/, "");
 					const normalizedFilePath = file.path.replace(/\/$/, "");
-					let isInFolder = false;
-					if (normalizedFilePath.startsWith(normalizedFolderPath)) {
-						const pathAfterFolder = normalizedFilePath.substring(
-							normalizedFolderPath.length,
+					const isInFolder =
+						normalizedFilePath === normalizedFolderPath ||
+						normalizedFilePath.startsWith(
+							normalizedFolderPath + "/",
 						);
-						const remainingPath = pathAfterFolder.replace(
-							/^\//,
-							"",
-						);
-						isInFolder = !remainingPath.includes("/");
-					}
 					const enabledForPublishing =
 						(isInFolder &&
 							(!frontMatter ||
@@ -479,21 +474,16 @@ export default class ConfluencePlugin extends Plugin {
 						view.file.path,
 					)?.frontmatter;
 					const file = view.file;
-					// Check if file is directly in the folder (not in subfolders)
+					// Check if file is in the folder or any subfolder
+					// The folder selection is a parent folder - all files under it should be published
 					const normalizedFolderPath =
 						this.settings.folderToPublish.replace(/\/$/, "");
 					const normalizedFilePath = file.path.replace(/\/$/, "");
-					let isInFolder = false;
-					if (normalizedFilePath.startsWith(normalizedFolderPath)) {
-						const pathAfterFolder = normalizedFilePath.substring(
-							normalizedFolderPath.length,
+					const isInFolder =
+						normalizedFilePath === normalizedFolderPath ||
+						normalizedFilePath.startsWith(
+							normalizedFolderPath + "/",
 						);
-						const remainingPath = pathAfterFolder.replace(
-							/^\//,
-							"",
-						);
-						isInFolder = !remainingPath.includes("/");
-					}
 					const enabledForPublishing =
 						(isInFolder &&
 							(!frontMatter ||

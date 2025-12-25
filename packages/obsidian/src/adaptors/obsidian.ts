@@ -61,38 +61,22 @@ export default class ObsidianAdaptor implements LoaderAdaptor {
 					// Empty or "." means sync all files
 					matchesFolder = true;
 				} else {
-					// Check if file is directly in the folder (not in subfolders)
-					// Use file.parent?.path for more reliable matching
-					const fileParentPath = file.parent?.path || "";
+					// Check if file is in the folder or any subfolder
+					// The folder selection is a parent folder - all files under it should be published
 					const normalizedFolderPath = folderToPublish.replace(
 						/\/$/,
 						"",
 					);
-					const normalizedParentPath = fileParentPath.replace(
-						/\/$/,
-						"",
-					);
+					const normalizedFilePath = file.path.replace(/\/$/, "");
 
-					// Exact match means file is directly in the folder
+					// Check if file path starts with the folder path followed by "/"
+					// This ensures we match files in the folder and all subfolders
+					// We use "/" separator to avoid partial matches (e.g., "Confluence/public" shouldn't match "Confluence/public2")
 					matchesFolder =
-						normalizedParentPath === normalizedFolderPath;
-
-					// Debug logging - only log files that are in or under the target folder
-					// to reduce noise, but include all relevant files
-					if (
-						file.path.startsWith(normalizedFolderPath) ||
-						normalizedParentPath.startsWith(normalizedFolderPath)
-					) {
-						console.log("Folder matching check:", {
-							folderToPublish: normalizedFolderPath,
-							fileParentPath: normalizedParentPath,
-							filePath: file.path,
-							matches: matchesFolder,
-							rawFolderToPublish: folderToPublish,
-							rawFileParentPath: fileParentPath,
-							fileParentExists: !!file.parent,
-						});
-					}
+						normalizedFilePath === normalizedFolderPath ||
+						normalizedFilePath.startsWith(
+							normalizedFolderPath + "/",
+						);
 				}
 
 				if (
