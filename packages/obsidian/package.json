@@ -16,7 +16,7 @@
     "author": "andymac4182",
     "license": "Apache 2.0",
     "devDependencies": {
-        "@types/mime-types": "^2.1.1",
+        "@types/mime-types": "^3.0.1",
         "@types/react-dom": "^18.0.11",
         "obsidian": "^1.1.1"
     },
