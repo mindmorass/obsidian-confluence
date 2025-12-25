@@ -402,8 +402,12 @@ export default class ConfluencePlugin extends Plugin {
 						view.file.path,
 					)?.frontmatter;
 					const file = view.file;
+					// Check if file is directly in the folder (not in subfolders)
+					const fileParentPath = file.parent?.path || "";
+					const isInFolder =
+						fileParentPath === this.settings.folderToPublish;
 					const enabledForPublishing =
-						(file.path.startsWith(this.settings.folderToPublish) &&
+						(isInFolder &&
 							(!frontMatter ||
 								frontMatter["connie-publish"] !== false)) ||
 						(frontMatter && frontMatter["connie-publish"] === true);
@@ -413,15 +417,15 @@ export default class ConfluencePlugin extends Plugin {
 				this.app.fileManager.processFrontMatter(
 					view.file,
 					(frontmatter) => {
-						if (
-							view.file &&
-							view.file.path.startsWith(
-								this.settings.folderToPublish,
-							)
-						) {
-							delete frontmatter["connie-publish"];
-						} else {
-							frontmatter["connie-publish"] = true;
+						if (view.file) {
+							const fileParentPath = view.file.parent?.path || "";
+							if (
+								fileParentPath === this.settings.folderToPublish
+							) {
+								delete frontmatter["connie-publish"];
+							} else {
+								frontmatter["connie-publish"] = true;
+							}
 						}
 					},
 				);
@@ -442,8 +446,12 @@ export default class ConfluencePlugin extends Plugin {
 						view.file.path,
 					)?.frontmatter;
 					const file = view.file;
+					// Check if file is directly in the folder (not in subfolders)
+					const fileParentPath = file.parent?.path || "";
+					const isInFolder =
+						fileParentPath === this.settings.folderToPublish;
 					const enabledForPublishing =
-						(file.path.startsWith(this.settings.folderToPublish) &&
+						(isInFolder &&
 							(!frontMatter ||
 								frontMatter["connie-publish"] !== false)) ||
 						(frontMatter && frontMatter["connie-publish"] === true);
@@ -453,15 +461,15 @@ export default class ConfluencePlugin extends Plugin {
 				this.app.fileManager.processFrontMatter(
 					view.file,
 					(frontmatter) => {
-						if (
-							view.file &&
-							view.file.path.startsWith(
-								this.settings.folderToPublish,
-							)
-						) {
-							frontmatter["connie-publish"] = false;
-						} else {
-							delete frontmatter["connie-publish"];
+						if (view.file) {
+							const fileParentPath = view.file.parent?.path || "";
+							if (
+								fileParentPath === this.settings.folderToPublish
+							) {
+								frontmatter["connie-publish"] = false;
+							} else {
+								delete frontmatter["connie-publish"];
+							}
 						}
 					},
 				);

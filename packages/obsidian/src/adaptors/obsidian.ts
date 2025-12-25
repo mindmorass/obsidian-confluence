@@ -52,13 +52,20 @@ export default class ObsidianAdaptor implements LoaderAdaptor {
 
 				// Check if file should be published
 				// If folderToPublish is empty or ".", it matches all files (root sync)
-				// Otherwise, check if file path starts with the folder path
+				// Otherwise, check if file is directly in the folder (not in subfolders)
 				const folderToPublish =
 					this.settings.folderToPublish?.trim() || "";
-				const matchesFolder =
-					folderToPublish === "" ||
-					folderToPublish === "." ||
-					file.path.startsWith(folderToPublish);
+
+				let matchesFolder = false;
+				if (folderToPublish === "" || folderToPublish === ".") {
+					// Empty or "." means sync all files
+					matchesFolder = true;
+				} else {
+					// Check if the file's parent folder exactly matches folderToPublish
+					// This ensures we only match files directly in the folder, not in subfolders
+					const fileParentPath = file.parent?.path || "";
+					matchesFolder = fileParentPath === folderToPublish;
+				}
 
 				if (
 					(matchesFolder &&
