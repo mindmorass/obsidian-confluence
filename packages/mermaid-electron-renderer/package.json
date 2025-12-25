@@ -20,7 +20,7 @@
     "devDependencies": {},
     "dependencies": {
         "@electron/remote": "^2.0.9",
-        "mermaid": "^10.2.3",
+        "mermaid": "^11.12.2",
         "@markdown-confluence/lib": "5.5.3"
     },
     "publishConfig": {
