@@ -403,9 +403,20 @@ export default class ConfluencePlugin extends Plugin {
 					)?.frontmatter;
 					const file = view.file;
 					// Check if file is directly in the folder (not in subfolders)
-					const fileParentPath = file.parent?.path || "";
-					const isInFolder =
-						fileParentPath === this.settings.folderToPublish;
+					const normalizedFolderPath =
+						this.settings.folderToPublish.replace(/\/$/, "");
+					const normalizedFilePath = file.path.replace(/\/$/, "");
+					let isInFolder = false;
+					if (normalizedFilePath.startsWith(normalizedFolderPath)) {
+						const pathAfterFolder = normalizedFilePath.substring(
+							normalizedFolderPath.length,
+						);
+						const remainingPath = pathAfterFolder.replace(
+							/^\//,
+							"",
+						);
+						isInFolder = !remainingPath.includes("/");
+					}
 					const enabledForPublishing =
 						(isInFolder &&
 							(!frontMatter ||
@@ -418,10 +429,32 @@ export default class ConfluencePlugin extends Plugin {
 					view.file,
 					(frontmatter) => {
 						if (view.file) {
-							const fileParentPath = view.file.parent?.path || "";
+							const normalizedFolderPath =
+								this.settings.folderToPublish.replace(
+									/\/$/,
+									"",
+								);
+							const normalizedFilePath = view.file.path.replace(
+								/\/$/,
+								"",
+							);
+							let isInFolder = false;
 							if (
-								fileParentPath === this.settings.folderToPublish
+								normalizedFilePath.startsWith(
+									normalizedFolderPath,
+								)
 							) {
+								const pathAfterFolder =
+									normalizedFilePath.substring(
+										normalizedFolderPath.length,
+									);
+								const remainingPath = pathAfterFolder.replace(
+									/^\//,
+									"",
+								);
+								isInFolder = !remainingPath.includes("/");
+							}
+							if (isInFolder) {
 								delete frontmatter["connie-publish"];
 							} else {
 								frontmatter["connie-publish"] = true;
@@ -447,9 +480,20 @@ export default class ConfluencePlugin extends Plugin {
 					)?.frontmatter;
 					const file = view.file;
 					// Check if file is directly in the folder (not in subfolders)
-					const fileParentPath = file.parent?.path || "";
-					const isInFolder =
-						fileParentPath === this.settings.folderToPublish;
+					const normalizedFolderPath =
+						this.settings.folderToPublish.replace(/\/$/, "");
+					const normalizedFilePath = file.path.replace(/\/$/, "");
+					let isInFolder = false;
+					if (normalizedFilePath.startsWith(normalizedFolderPath)) {
+						const pathAfterFolder = normalizedFilePath.substring(
+							normalizedFolderPath.length,
+						);
+						const remainingPath = pathAfterFolder.replace(
+							/^\//,
+							"",
+						);
+						isInFolder = !remainingPath.includes("/");
+					}
 					const enabledForPublishing =
 						(isInFolder &&
 							(!frontMatter ||
@@ -462,10 +506,32 @@ export default class ConfluencePlugin extends Plugin {
 					view.file,
 					(frontmatter) => {
 						if (view.file) {
-							const fileParentPath = view.file.parent?.path || "";
+							const normalizedFolderPath =
+								this.settings.folderToPublish.replace(
+									/\/$/,
+									"",
+								);
+							const normalizedFilePath = view.file.path.replace(
+								/\/$/,
+								"",
+							);
+							let isInFolder = false;
 							if (
-								fileParentPath === this.settings.folderToPublish
+								normalizedFilePath.startsWith(
+									normalizedFolderPath,
+								)
 							) {
+								const pathAfterFolder =
+									normalizedFilePath.substring(
+										normalizedFolderPath.length,
+									);
+								const remainingPath = pathAfterFolder.replace(
+									/^\//,
+									"",
+								);
+								isInFolder = !remainingPath.includes("/");
+							}
+							if (isInFolder) {
 								frontmatter["connie-publish"] = false;
 							} else {
 								delete frontmatter["connie-publish"];
