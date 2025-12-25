@@ -7,7 +7,10 @@
       "prepare": "husky install",
       "predev-obsidian": "npm run build",
       "dev-obsidian": "npm run dev --workspace=@markdown-confluence/lib & npm run dev --workspace=@markdown-confluence/mermaid-electron-renderer & npm run dev --workspace=obsidian-confluence",
-      "build": "npm run build -ws --if-present",
+      "build": "npm run build:libs && npm run build:obsidian",
+      "build:libs": "npm run build --workspace=@markdown-confluence/lib && npm run build --workspace=@markdown-confluence/mermaid-electron-renderer && npm run build --workspace=@markdown-confluence/mermaid-puppeteer-renderer && npm run build --workspace=@markdown-confluence/cli",
+      "build:obsidian": "npm run build --workspace=obsidian-confluence",
+      "build:all": "npm run build -ws --if-present",
       "fmt": "npm run fmt -ws --if-present",
       "lint": "npm run lint -ws --if-present",
       "test": "npm test -ws --if-present"

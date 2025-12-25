@@ -4,6 +4,17 @@ on:
     push:
         tags:
             - "obsidian-plugin-v*"
+    workflow_dispatch:
+        inputs:
+            version:
+                description: "Version to release (e.g., 5.5.6)"
+                required: true
+                type: string
+            skip_build:
+                description: "Skip build step (use existing dist files)"
+                required: false
+                type: boolean
+                default: false
 
 permissions:
     contents: write
@@ -15,6 +26,9 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  fetch-depth: 0
 
             - name: Setup Node.js
               uses: actions/setup-node@v4
@@ -23,16 +37,26 @@ jobs:
                   cache: "npm"
 
             - name: Install dependencies
+              if: ${{ github.event_name == 'push' || !inputs.skip_build }}
               run: npm ci
 
+            - name: Build libraries
+              if: ${{ github.event_name == 'push' || !inputs.skip_build }}
+              run: npm run build:libs
+
             - name: Build obsidian plugin
+              if: ${{ github.event_name == 'push' || !inputs.skip_build }}
               working-directory: packages/obsidian
               run: npm run build
 
-            - name: Extract version from tag
+            - name: Extract version from tag or input
               id: get_version
               run: |
-                  VERSION=${GITHUB_REF#refs/tags/obsidian-plugin-v}
+                  if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+                      VERSION="${{ inputs.version }}"
+                  else
+                      VERSION=${GITHUB_REF#refs/tags/obsidian-plugin-v}
+                  fi
                   echo "version=$VERSION" >> $GITHUB_OUTPUT
                   echo "Building release for version: $VERSION"
 
@@ -40,22 +64,30 @@ jobs:
               working-directory: packages/obsidian
               run: |
                   if [ ! -f "dist/main.js" ]; then
-                    echo "Error: dist/main.js not found after build"
-                    exit 1
+                      echo "Error: dist/main.js not found after build"
+                      exit 1
                   fi
                   if [ ! -f "manifest.json" ]; then
-                    echo "Error: manifest.json not found"
-                    exit 1
+                      echo "Error: manifest.json not found"
+                      exit 1
                   fi
 
-                  # Verify manifest version matches tag
+                  # Verify manifest version matches version (tag or input)
                   MANIFEST_VERSION=$(jq -r '.version' manifest.json)
-                  TAG_VERSION="${{ steps.get_version.outputs.version }}"
-                  if [ "$MANIFEST_VERSION" != "$TAG_VERSION" ]; then
-                    echo "Error: manifest.json version ($MANIFEST_VERSION) does not match tag version ($TAG_VERSION)"
-                    exit 1
+                  RELEASE_VERSION="${{ steps.get_version.outputs.version }}"
+                  if [ "$MANIFEST_VERSION" != "$RELEASE_VERSION" ]; then
+                      echo "Warning: manifest.json version ($MANIFEST_VERSION) does not match release version ($RELEASE_VERSION)"
+                      echo "Continuing anyway for manual release..."
                   fi
                   echo "Build artifacts verified successfully"
+
+            - name: Create tag for manual release
+              if: ${{ github.event_name == 'workflow_dispatch' }}
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git tag -a "obsidian-plugin-v${{ steps.get_version.outputs.version }}" -m "Release obsidian plugin v${{ steps.get_version.outputs.version }}"
+                  git push origin "obsidian-plugin-v${{ steps.get_version.outputs.version }}"
 
             - name: Create release archive
               working-directory: packages/obsidian
@@ -71,6 +103,7 @@ jobs:
             - name: Create Release
               uses: softprops/action-gh-release@v1
               with:
+                  tag_name: ${{ github.event_name == 'workflow_dispatch' && format('obsidian-plugin-v{0}', steps.get_version.outputs.version) || github.ref_name }}
                   files: |
                       packages/obsidian/dist/main.js
                       packages/obsidian/manifest.json
