@@ -77,15 +77,22 @@ export default class ObsidianAdaptor implements LoaderAdaptor {
 					matchesFolder =
 						normalizedParentPath === normalizedFolderPath;
 
-					// Debug logging - log all files to see what's happening
-					console.log("Folder matching check:", {
-						folderToPublish: normalizedFolderPath,
-						fileParentPath: normalizedParentPath,
-						filePath: file.path,
-						matches: matchesFolder,
-						rawFolderToPublish: folderToPublish,
-						rawFileParentPath: fileParentPath,
-					});
+					// Debug logging - only log files that are in or under the target folder
+					// to reduce noise, but include all relevant files
+					if (
+						file.path.startsWith(normalizedFolderPath) ||
+						normalizedParentPath.startsWith(normalizedFolderPath)
+					) {
+						console.log("Folder matching check:", {
+							folderToPublish: normalizedFolderPath,
+							fileParentPath: normalizedParentPath,
+							filePath: file.path,
+							matches: matchesFolder,
+							rawFolderToPublish: folderToPublish,
+							rawFileParentPath: fileParentPath,
+							fileParentExists: !!file.parent,
+						});
+					}
 				}
 
 				if (
