@@ -301,10 +301,26 @@ export class Publisher {
 				  }),
 		};
 
-		if (
-			!adfEqual(existingPageData.adfContent, adfToUpload) ||
-			!isEqual(existingPageDetails, newPageDetails)
-		) {
+		// Normalize ADFs for comparison by ensuring both have the same version
+		// The version field shouldn't affect content comparison
+		const normalizedExisting = {
+			...existingPageData.adfContent,
+			version: 1, // Normalize version to 1 for comparison
+		};
+		const normalizedToUpload = {
+			...adfToUpload,
+			version: 1, // Normalize version to 1 for comparison
+		};
+
+		// Compare ADFs using adfEqual which normalizes marks before comparison
+		// Note: adfEqual uses isEqual which checks array order, so content arrays must match exactly
+		const adfContentEqual = adfEqual(
+			normalizedExisting,
+			normalizedToUpload,
+		);
+		const pageDetailsEqual = isEqual(existingPageDetails, newPageDetails);
+
+		if (!adfContentEqual || !pageDetailsEqual) {
 			result.contentResult = "updated";
 
 			const updateContentDetails = {

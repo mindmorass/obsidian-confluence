@@ -5,7 +5,7 @@ import { ADFEntity, ADFEntityMark } from "@atlaskit/adf-utils/types";
 import { isEqual } from "./isEqual";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const sortDeep = (object: unknown): any => {
+export const sortDeep = (object: unknown): any => {
 	if (object instanceof Map) {
 		return sortAny([...object]);
 	}
