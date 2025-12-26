@@ -75,7 +75,7 @@ const CompletedView: React.FC<UploadResultsProps> = ({ uploadResults }) => {
       </div>
       {errorMessage ? (
         <div className="error-message">
-          <h3>Error</h3>
+          <h3>{errorMessage.includes("Nothing to sync") ? "No Files to Sync" : "Error"}</h3>
           <p>{errorMessage}</p>
         </div>
       ) : (

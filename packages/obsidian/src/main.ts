@@ -211,16 +211,19 @@ export default class ConfluencePlugin extends Plugin {
 		};
 
 		// If folder mappings are configured, group files by parent ID and publish separately
-		if (
-			this.settings.folderMappings &&
-			this.settings.folderMappings.length > 0
-		) {
+		if (this.settings.folderMappings) {
+			// Check if folder mappings array is empty
+			if (this.settings.folderMappings.length === 0) {
+				returnVal.errorMessage =
+					"Nothing to sync. There are no Obsidian folder to Confluence mappings configured.";
+				return returnVal;
+			}
+
 			// Get all files that should be published
 			const allFiles = await this.adaptor.getMarkdownFilesToUpload();
 
 			// Group files by their parent ID (based on folder mappings)
 			const filesByParentId = new Map<string, typeof allFiles>();
-			const defaultParentFiles: typeof allFiles = [];
 
 			for (const file of allFiles) {
 				// Apply publishFilter if specified
@@ -231,15 +234,14 @@ export default class ConfluencePlugin extends Plugin {
 				const parentId = this.adaptor.getParentIdForFile(
 					file.absoluteFilePath,
 				);
+				// Only publish files that have a mapping - no default fallback
 				if (parentId) {
 					if (!filesByParentId.has(parentId)) {
 						filesByParentId.set(parentId, []);
 					}
 					filesByParentId.get(parentId)!.push(file);
-				} else {
-					// Files without a mapping go to default parent
-					defaultParentFiles.push(file);
 				}
+				// Files without a mapping are skipped when folder mappings exist
 			}
 
 			// Create a filtered adaptor wrapper
@@ -278,6 +280,13 @@ export default class ConfluencePlugin extends Plugin {
 						values,
 					);
 				}
+			}
+
+			// Check if no files matched any mapping
+			if (filesByParentId.size === 0) {
+				returnVal.errorMessage =
+					"Nothing to sync. There are no Obsidian folder to Confluence mappings configured, or no files match the configured mappings.";
+				return returnVal;
 			}
 
 			// Publish each group with its corresponding parent ID
@@ -324,47 +333,6 @@ export default class ConfluencePlugin extends Plugin {
 				} catch (error) {
 					returnVal.failedFiles.push({
 						fileName: `Group with parent ID ${parentId}`,
-						reason:
-							error instanceof Error
-								? error.message
-								: String(error),
-					});
-				}
-			}
-
-			// Publish files that go to the default parent
-			if (defaultParentFiles.length > 0) {
-				try {
-					const filteredAdaptor = new FilteredAdaptor(
-						this.adaptor,
-						defaultParentFiles,
-					);
-
-					const tempPublisher = new Publisher(
-						filteredAdaptor,
-						new StaticSettingsLoader(this.settings),
-						this.confluenceClient,
-						[this.mermaidRendererPlugin],
-					);
-
-					const adrFiles = await tempPublisher.publish();
-
-					adrFiles.forEach((element) => {
-						if (element.successfulUploadResult) {
-							returnVal.filesUploadResult.push(
-								element.successfulUploadResult,
-							);
-							return;
-						}
-
-						returnVal.failedFiles.push({
-							fileName: element.node.file.absoluteFilePath,
-							reason: element.reason ?? "No Reason Provided",
-						});
-					});
-				} catch (error) {
-					returnVal.failedFiles.push({
-						fileName: "Default parent files",
 						reason:
 							error instanceof Error
 								? error.message

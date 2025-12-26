@@ -81,12 +81,13 @@ export default class ObsidianAdaptor implements LoaderAdaptor {
 				}
 				const frontMatter = fileFM.frontmatter;
 
-				// Check if file should be published based on folder mappings or default folderToPublish
+				// Check if file should be published based on folder mappings
+				// When folder mappings exist, only files matching those mappings are published
 				let matchesFolder = false;
-				const normalizedFilePath = file.path.replace(/\/$/, "");
 
-				// First, check folder mappings (if any)
 				if (this.folderMappings && this.folderMappings.length > 0) {
+					// Only check folder mappings - no fallback to folderToPublish
+					const normalizedFilePath = file.path.replace(/\/$/, "");
 					for (const mapping of this.folderMappings) {
 						if (
 							!mapping.localFolder ||
@@ -107,12 +108,8 @@ export default class ObsidianAdaptor implements LoaderAdaptor {
 							break; // Found a match, no need to check other mappings
 						}
 					}
-				}
-
-				// If no mapping matched, also check default folderToPublish
-				// This allows files that match folderToPublish but not any mapping
-				// to still be included (they'll go to the default parent)
-				if (!matchesFolder) {
+				} else {
+					// No folder mappings, use default folderToPublish behavior
 					const folderToPublish =
 						this.settings.folderToPublish?.trim() || "";
 
@@ -125,6 +122,7 @@ export default class ObsidianAdaptor implements LoaderAdaptor {
 							/\/$/,
 							"",
 						);
+						const normalizedFilePath = file.path.replace(/\/$/, "");
 
 						matchesFolder =
 							normalizedFilePath === normalizedFolderPath ||
