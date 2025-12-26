@@ -4,6 +4,7 @@ import {
 	ADFProcessingPlugin,
 	createPublisherFunctions,
 	executeADFProcessingPipeline,
+	PublisherFunctions,
 } from "./ADFProcessingPlugins/types";
 import { adfEqual } from "./AdfEqual";
 import { CurrentAttachments } from "./Attachments";
@@ -232,47 +233,51 @@ export class Publisher {
 				};
 			}, {});
 
-		const supportFunctions = createPublisherFunctions(
+		// Track image uploads to determine if images actually changed
+		const imageUploadStatuses: ("existing" | "uploaded")[] = [];
+		const baseSupportFunctions = createPublisherFunctions(
 			this.confluenceClient,
 			this.adaptor,
 			adfFile.pageId,
 			adfFile.absoluteFilePath,
 			currentAttachments,
 		);
+		const trackingSupportFunctions: PublisherFunctions = {
+			uploadFile: async (fileNameToUpload: string) => {
+				const uploadedContent = await baseSupportFunctions.uploadFile(
+					fileNameToUpload,
+				);
+				if (uploadedContent?.status) {
+					imageUploadStatuses.push(uploadedContent.status);
+				}
+				return uploadedContent;
+			},
+			uploadBuffer: async (
+				uploadFilename: string,
+				fileBuffer: Buffer,
+			) => {
+				const uploadedContent = await baseSupportFunctions.uploadBuffer(
+					uploadFilename,
+					fileBuffer,
+				);
+				if (uploadedContent?.status) {
+					imageUploadStatuses.push(uploadedContent.status);
+				}
+				return uploadedContent;
+			},
+		};
+
 		const adfToUpload = await executeADFProcessingPipeline(
 			this.adfProcessingPlugins,
 			adfFile.contents,
-			supportFunctions,
+			trackingSupportFunctions,
 		);
 
-		/*
-		const imageResult = Object.keys(imageUploadResult.imageMap).reduce(
-			(prev, curr) => {
-				const value = imageUploadResult.imageMap[curr];
-				if (!value) {
-					return prev;
-				}
-				const status = value.status;
-				return {
-					...prev,
-					[status]: (prev[status] ?? 0) + 1,
-				};
-			},
-			{
-				existing: 0,
-				uploaded: 0,
-			} as Record<string, number>
+		// Determine if images were actually updated
+		const hasNewUploads = imageUploadStatuses.some(
+			(status) => status === "uploaded",
 		);
-		*/
-
-		/*
-		if (!adfEqual(adfFile.contents, imageUploadResult.adf)) {
-			result.imageResult =
-				(imageResult["uploaded"] ?? 0) > 0 ? "updated" : "same";
-		}
-		*/
-
-		result.imageResult = "updated";
+		result.imageResult = hasNewUploads ? "updated" : "same";
 
 		const existingPageDetails = {
 			title: existingPageData.pageTitle,
@@ -301,13 +306,6 @@ export class Publisher {
 			!isEqual(existingPageDetails, newPageDetails)
 		) {
 			result.contentResult = "updated";
-			console.log(`TESTING DIFF - ${adfFile.absoluteFilePath}`);
-
-			const replacer = (_key: unknown, value: unknown) =>
-				typeof value === "undefined" ? null : value;
-
-			console.log(JSON.stringify(existingPageData.adfContent, replacer));
-			console.log(JSON.stringify(adfToUpload, replacer));
 
 			const updateContentDetails = {
 				...newPageDetails,
