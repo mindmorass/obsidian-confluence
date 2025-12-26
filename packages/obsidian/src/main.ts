@@ -7,6 +7,10 @@ import {
 	renderADFDoc,
 	MermaidRendererPlugin,
 	UploadAdfFileResult,
+	LoaderAdaptor,
+	MarkdownFile,
+	FilesToUpload,
+	BinaryFile,
 } from "@markdown-confluence/lib";
 import { ElectronMermaidRenderer } from "@markdown-confluence/mermaid-electron-renderer";
 import { ConfluenceSettingTab } from "./ConfluenceSettingTab";
@@ -20,6 +24,11 @@ import {
 } from "./ConfluencePerPageForm";
 import { Mermaid } from "mermaid";
 
+export interface FolderMapping {
+	localFolder: string;
+	confluenceParentId: string;
+}
+
 export interface ObsidianPluginSettings
 	extends ConfluenceUploadSettings.ConfluenceSettings {
 	mermaidTheme:
@@ -30,6 +39,7 @@ export interface ObsidianPluginSettings
 		| "neutral"
 		| "dark"
 		| "forest";
+	folderMappings?: FolderMapping[];
 }
 
 interface FailedFile {
@@ -49,6 +59,8 @@ export default class ConfluencePlugin extends Plugin {
 	workspace!: Workspace;
 	publisher!: Publisher;
 	adaptor!: ObsidianAdaptor;
+	private confluenceClient!: ObsidianConfluenceClient;
+	private mermaidRendererPlugin!: MermaidRendererPlugin;
 
 	activeLeafPath(workspace: Workspace): string | undefined {
 		const view = workspace.getActiveViewOfType(MarkdownView);
@@ -63,7 +75,10 @@ export default class ConfluencePlugin extends Plugin {
 		// If adaptor already exists, update its settings reference instead of recreating
 		// This ensures the adaptor always uses the latest settings
 		if (this.adaptor) {
-			this.adaptor.updateSettings(this.settings);
+			this.adaptor.updateSettings(
+				this.settings,
+				this.settings.folderMappings,
+			);
 		} else {
 			this.adaptor = new ObsidianAdaptor(
 				vault,
@@ -80,7 +95,7 @@ export default class ConfluencePlugin extends Plugin {
 			mermaidItems.mermaidConfig,
 			mermaidItems.bodyStyles,
 		);
-		const confluenceClient = new ObsidianConfluenceClient({
+		this.confluenceClient = new ObsidianConfluenceClient({
 			host: this.settings.confluenceBaseUrl,
 			authentication: {
 				basic: {
@@ -104,13 +119,16 @@ export default class ConfluencePlugin extends Plugin {
 		// This ensures the publisher always uses the latest settings
 		const settingsLoader = new StaticSettingsLoader(this.settings);
 
+		// Store mermaid renderer plugin for reuse
+		this.mermaidRendererPlugin = new MermaidRendererPlugin(mermaidRenderer);
+
 		// If publisher already exists, we need to recreate it with the new settings loader
 		// since Publisher stores the settingsLoader reference
 		this.publisher = new Publisher(
 			this.adaptor,
 			settingsLoader,
-			confluenceClient,
-			[new MermaidRendererPlugin(mermaidRenderer)],
+			this.confluenceClient,
+			[this.mermaidRendererPlugin],
 		);
 	}
 
@@ -186,27 +204,192 @@ export default class ConfluencePlugin extends Plugin {
 	}
 
 	async doPublish(publishFilter?: string): Promise<UploadResults> {
-		const adrFiles = await this.publisher.publish(publishFilter);
-
 		const returnVal: UploadResults = {
 			errorMessage: null,
 			failedFiles: [],
 			filesUploadResult: [],
 		};
 
-		adrFiles.forEach((element) => {
-			if (element.successfulUploadResult) {
-				returnVal.filesUploadResult.push(
-					element.successfulUploadResult,
+		// If folder mappings are configured, group files by parent ID and publish separately
+		if (
+			this.settings.folderMappings &&
+			this.settings.folderMappings.length > 0
+		) {
+			// Get all files that should be published
+			const allFiles = await this.adaptor.getMarkdownFilesToUpload();
+
+			// Group files by their parent ID (based on folder mappings)
+			const filesByParentId = new Map<string, typeof allFiles>();
+			const defaultParentFiles: typeof allFiles = [];
+
+			for (const file of allFiles) {
+				// Apply publishFilter if specified
+				if (publishFilter && file.absoluteFilePath !== publishFilter) {
+					continue;
+				}
+
+				const parentId = this.adaptor.getParentIdForFile(
+					file.absoluteFilePath,
 				);
-				return;
+				if (parentId) {
+					if (!filesByParentId.has(parentId)) {
+						filesByParentId.set(parentId, []);
+					}
+					filesByParentId.get(parentId)!.push(file);
+				} else {
+					// Files without a mapping go to default parent
+					defaultParentFiles.push(file);
+				}
 			}
 
-			returnVal.failedFiles.push({
-				fileName: element.node.file.absoluteFilePath,
-				reason: element.reason ?? "No Reason Provided",
+			// Create a filtered adaptor wrapper
+			class FilteredAdaptor implements LoaderAdaptor {
+				constructor(
+					private baseAdaptor: LoaderAdaptor,
+					private allowedFiles: typeof allFiles,
+				) {}
+
+				async getMarkdownFilesToUpload(): Promise<FilesToUpload> {
+					return this.allowedFiles;
+				}
+
+				async loadMarkdownFile(
+					absoluteFilePath: string,
+				): Promise<MarkdownFile> {
+					return this.baseAdaptor.loadMarkdownFile(absoluteFilePath);
+				}
+
+				async readBinary(
+					path: string,
+					referencedFromFilePath: string,
+				): Promise<BinaryFile | false> {
+					return this.baseAdaptor.readBinary(
+						path,
+						referencedFromFilePath,
+					);
+				}
+
+				async updateMarkdownValues(
+					absoluteFilePath: string,
+					values: Partial<ConfluencePageConfig.ConfluencePerPageAllValues>,
+				): Promise<void> {
+					return this.baseAdaptor.updateMarkdownValues(
+						absoluteFilePath,
+						values,
+					);
+				}
+			}
+
+			// Publish each group with its corresponding parent ID
+			for (const [parentId, files] of filesByParentId.entries()) {
+				try {
+					// Create a temporary settings object with this parent ID
+					const tempSettings = {
+						...this.settings,
+						confluenceParentId: parentId,
+					};
+					const tempSettingsLoader = new StaticSettingsLoader(
+						tempSettings,
+					);
+
+					// Create a filtered adaptor that only returns files for this parent ID
+					const filteredAdaptor = new FilteredAdaptor(
+						this.adaptor,
+						files,
+					);
+
+					// Create a temporary publisher with the modified settings and filtered adaptor
+					const tempPublisher = new Publisher(
+						filteredAdaptor,
+						tempSettingsLoader,
+						this.confluenceClient,
+						[this.mermaidRendererPlugin],
+					);
+
+					const adrFiles = await tempPublisher.publish();
+
+					adrFiles.forEach((element) => {
+						if (element.successfulUploadResult) {
+							returnVal.filesUploadResult.push(
+								element.successfulUploadResult,
+							);
+							return;
+						}
+
+						returnVal.failedFiles.push({
+							fileName: element.node.file.absoluteFilePath,
+							reason: element.reason ?? "No Reason Provided",
+						});
+					});
+				} catch (error) {
+					returnVal.failedFiles.push({
+						fileName: `Group with parent ID ${parentId}`,
+						reason:
+							error instanceof Error
+								? error.message
+								: String(error),
+					});
+				}
+			}
+
+			// Publish files that go to the default parent
+			if (defaultParentFiles.length > 0) {
+				try {
+					const filteredAdaptor = new FilteredAdaptor(
+						this.adaptor,
+						defaultParentFiles,
+					);
+
+					const tempPublisher = new Publisher(
+						filteredAdaptor,
+						new StaticSettingsLoader(this.settings),
+						this.confluenceClient,
+						[this.mermaidRendererPlugin],
+					);
+
+					const adrFiles = await tempPublisher.publish();
+
+					adrFiles.forEach((element) => {
+						if (element.successfulUploadResult) {
+							returnVal.filesUploadResult.push(
+								element.successfulUploadResult,
+							);
+							return;
+						}
+
+						returnVal.failedFiles.push({
+							fileName: element.node.file.absoluteFilePath,
+							reason: element.reason ?? "No Reason Provided",
+						});
+					});
+				} catch (error) {
+					returnVal.failedFiles.push({
+						fileName: "Default parent files",
+						reason:
+							error instanceof Error
+								? error.message
+								: String(error),
+					});
+				}
+			}
+		} else {
+			// No folder mappings, use default behavior
+			const adrFiles = await this.publisher.publish(publishFilter);
+
+			adrFiles.forEach((element) => {
+				if (element.successfulUploadResult) {
+					returnVal.filesUploadResult.push(
+						element.successfulUploadResult,
+					);
+					return;
+				}
+
+				returnVal.failedFiles.push({
+					fileName: element.node.file.absoluteFilePath,
+					reason: element.reason ?? "No Reason Provided",
+				});
 			});
-		});
+		}
 
 		return returnVal;
 	}
@@ -222,6 +405,7 @@ export default class ConfluencePlugin extends Plugin {
 		// - connie-publish: checkbox (boolean, displayed as checkbox in Obsidian)
 		// - connie-page-id: text (string, stored as string)
 		try {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const metadataCache = this.app.metadataCache as any;
 			if (
 				metadataCache &&
@@ -592,9 +776,13 @@ export default class ConfluencePlugin extends Plugin {
 		this.settings = Object.assign(
 			{},
 			ConfluenceUploadSettings.DEFAULT_SETTINGS,
-			{ mermaidTheme: "match-obsidian" },
+			{ mermaidTheme: "match-obsidian", folderMappings: [] },
 			await this.loadData(),
 		);
+		// Ensure folderMappings is always an array
+		if (!this.settings.folderMappings) {
+			this.settings.folderMappings = [];
+		}
 	}
 
 	async saveSettings() {

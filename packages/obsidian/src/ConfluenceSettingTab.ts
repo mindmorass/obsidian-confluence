@@ -1,5 +1,5 @@
 import { App, Setting, PluginSettingTab, TFolder } from "obsidian";
-import ConfluencePlugin from "./main";
+import ConfluencePlugin, { FolderMapping } from "./main";
 
 export class ConfluenceSettingTab extends PluginSettingTab {
 	plugin: ConfluencePlugin;
@@ -7,6 +7,22 @@ export class ConfluenceSettingTab extends PluginSettingTab {
 	constructor(app: App, plugin: ConfluencePlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
+	}
+
+	/**
+	 * Get all root-level folders in the vault
+	 */
+	private getRootLevelFolders(): string[] {
+		const rootFolders: string[] = [];
+		const rootFiles = this.app.vault.getRoot().children;
+
+		for (const child of rootFiles) {
+			if (child instanceof TFolder) {
+				rootFolders.push(child.path);
+			}
+		}
+
+		return rootFolders.sort();
 	}
 
 	/**
@@ -80,8 +96,10 @@ export class ConfluenceSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Confluence Parent Page ID")
-			.setDesc("Page ID to publish files under")
+			.setName("Default Confluence Parent Page ID")
+			.setDesc(
+				"Default page ID to publish files under (used when no folder mapping matches)",
+			)
 			.addText((text) =>
 				text
 					.setPlaceholder("23232345645")
@@ -92,65 +110,96 @@ export class ConfluenceSettingTab extends PluginSettingTab {
 					}),
 			);
 
-		// Folder to publish setting with dropdown for Confluence directory
-		const confluenceFolders = this.getConfluenceFolders();
-		const confluenceFolderExists = confluenceFolders.length > 0;
+		// Folder Mappings section
+		containerEl.createEl("h3", {
+			text: "Folder Mappings",
+		});
 
-		const folderSetting = new Setting(containerEl)
-			.setName("Folder to publish")
-			.setDesc(
-				confluenceFolderExists
-					? "Select a folder from the Confluence directory to publish"
-					: "Create a 'Confluence' directory in your vault with subfolders to enable folder selection",
-			);
+		containerEl.createEl("p", {
+			text: "Map local Obsidian folders to specific Confluence parent pages. Files in mapped folders will be published to their corresponding Confluence parent. Files not in any mapped folder will use the default parent page ID above.",
+			cls: "setting-item-description",
+		});
 
-		if (confluenceFolderExists) {
-			// Create dropdown with folders from Confluence directory
+		// Container for folder mappings
+		const mappingsContainer = containerEl.createEl("div", {
+			cls: "folder-mappings-container",
+		});
+
+		// Function to render a single folder mapping
+		const renderFolderMapping = (mapping: FolderMapping, index: number) => {
+			const mappingSetting = new Setting(mappingsContainer)
+				.setName(`Mapping ${index + 1}`)
+				.setDesc("Local folder and Confluence parent page ID");
+
+			const rootFolders = this.getRootLevelFolders();
 			const folderOptions: Record<string, string> = {};
-			for (const folderPath of confluenceFolders) {
-				// Use just the folder name (last part of path) as the display name
+			for (const folderPath of rootFolders) {
 				const folderName = folderPath.split("/").pop() || folderPath;
 				folderOptions[folderPath] = folderName;
 			}
 
-			folderSetting.addDropdown((dropdown) => {
+			// Add dropdown for folder selection
+			mappingSetting.addDropdown((dropdown) => {
 				dropdown
 					.addOptions(folderOptions)
-					.setValue(
-						confluenceFolders.includes(
-							this.plugin.settings.folderToPublish,
-						)
-							? this.plugin.settings.folderToPublish
-							: confluenceFolders[0] || "",
-					)
+					.setValue(mapping.localFolder || rootFolders[0] || "")
 					.onChange(async (value) => {
-						this.plugin.settings.folderToPublish = value;
-						await this.plugin.saveSettings();
-					});
-			});
-		} else {
-			// Show text input (still allow manual entry for backwards compatibility)
-			// but display a warning about creating the Confluence directory
-			folderSetting.addText((text) => {
-				text.setPlaceholder(
-					"Enter folder path (e.g., 'Confluence/MyFolder')",
-				)
-					.setValue(this.plugin.settings.folderToPublish || "")
-					.onChange(async (value) => {
-						this.plugin.settings.folderToPublish = value;
+						mapping.localFolder = value;
 						await this.plugin.saveSettings();
 					});
 			});
 
-			// Add a warning note below the setting
-			const noteEl = containerEl.createEl("div", {
-				cls: "setting-item-description",
+			// Add text input for Confluence parent page ID
+			mappingSetting.addText((text) => {
+				text.setPlaceholder("Confluence Parent Page ID")
+					.setValue(mapping.confluenceParentId || "")
+					.onChange(async (value) => {
+						mapping.confluenceParentId = value;
+						await this.plugin.saveSettings();
+					});
 			});
-			noteEl.createEl("p", {
-				text: "⚠️ Please create a 'Confluence' directory in your vault root with subfolders to enable folder selection via dropdown.",
-				cls: "mod-warning",
+
+			// Add remove button
+			mappingSetting.addButton((button) => {
+				button
+					.setIcon("trash")
+					.setTooltip("Remove this mapping")
+					.onClick(async () => {
+						this.plugin.settings.folderMappings?.splice(index, 1);
+						await this.plugin.saveSettings();
+						this.display(); // Refresh the settings UI
+					});
+			});
+		};
+
+		// Render existing mappings
+		if (this.plugin.settings.folderMappings) {
+			this.plugin.settings.folderMappings.forEach((mapping, index) => {
+				renderFolderMapping(mapping, index);
 			});
 		}
+
+		// Add button to add new mapping
+		const addMappingSetting = new Setting(containerEl)
+			.setName("Add Folder Mapping")
+			.setDesc("Add a new folder mapping")
+			.addButton((button) => {
+				button
+					.setButtonText("+ Add Mapping")
+					.setCta()
+					.onClick(async () => {
+						if (!this.plugin.settings.folderMappings) {
+							this.plugin.settings.folderMappings = [];
+						}
+						const rootFolders = this.getRootLevelFolders();
+						this.plugin.settings.folderMappings.push({
+							localFolder: rootFolders[0] || "",
+							confluenceParentId: "",
+						});
+						await this.plugin.saveSettings();
+						this.display(); // Refresh the settings UI
+					});
+			});
 
 		new Setting(containerEl)
 			.setName("First Header Page Name")

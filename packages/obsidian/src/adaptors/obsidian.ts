@@ -14,6 +14,7 @@ export default class ObsidianAdaptor implements LoaderAdaptor {
 	metadataCache: MetadataCache;
 	settings: ConfluenceUploadSettings.ConfluenceSettings;
 	app: App;
+	folderMappings?: Array<{ localFolder: string; confluenceParentId: string }>;
 
 	constructor(
 		vault: Vault,
@@ -31,8 +32,38 @@ export default class ObsidianAdaptor implements LoaderAdaptor {
 	// Method to update settings reference (in case settings object is replaced)
 	updateSettings(
 		settings: ConfluenceUploadSettings.ConfluenceSettings,
+		folderMappings?: Array<{
+			localFolder: string;
+			confluenceParentId: string;
+		}>,
 	): void {
 		this.settings = settings;
+		this.folderMappings = folderMappings;
+	}
+
+	/**
+	 * Get the Confluence parent ID for a file based on folder mappings
+	 */
+	getParentIdForFile(filePath: string): string | null {
+		if (!this.folderMappings || this.folderMappings.length === 0) {
+			return null; // No mappings, use default
+		}
+
+		const normalizedFilePath = filePath.replace(/\/$/, "");
+		for (const mapping of this.folderMappings) {
+			if (!mapping.localFolder || !mapping.confluenceParentId) {
+				continue; // Skip incomplete mappings
+			}
+			const normalizedFolderPath = mapping.localFolder.replace(/\/$/, "");
+			// Check if file is in this mapped folder or any subfolder
+			if (
+				normalizedFilePath === normalizedFolderPath ||
+				normalizedFilePath.startsWith(normalizedFolderPath + "/")
+			) {
+				return mapping.confluenceParentId;
+			}
+		}
+		return null; // No mapping found, use default
 	}
 
 	async getMarkdownFilesToUpload(): Promise<FilesToUpload> {
@@ -50,33 +81,54 @@ export default class ObsidianAdaptor implements LoaderAdaptor {
 				}
 				const frontMatter = fileFM.frontmatter;
 
-				// Check if file should be published
-				// If folderToPublish is empty or ".", it matches all files (root sync)
-				// Otherwise, check if file is directly in the folder (not in subfolders)
-				const folderToPublish =
-					this.settings.folderToPublish?.trim() || "";
-
+				// Check if file should be published based on folder mappings or default folderToPublish
 				let matchesFolder = false;
-				if (folderToPublish === "" || folderToPublish === ".") {
-					// Empty or "." means sync all files
-					matchesFolder = true;
-				} else {
-					// Check if file is in the folder or any subfolder
-					// The folder selection is a parent folder - all files under it should be published
-					const normalizedFolderPath = folderToPublish.replace(
-						/\/$/,
-						"",
-					);
-					const normalizedFilePath = file.path.replace(/\/$/, "");
 
-					// Check if file path starts with the folder path followed by "/"
-					// This ensures we match files in the folder and all subfolders
-					// We use "/" separator to avoid partial matches (e.g., "Confluence/public" shouldn't match "Confluence/public2")
-					matchesFolder =
-						normalizedFilePath === normalizedFolderPath ||
-						normalizedFilePath.startsWith(
-							normalizedFolderPath + "/",
+				// First, check folder mappings (if any)
+				if (this.folderMappings && this.folderMappings.length > 0) {
+					const normalizedFilePath = file.path.replace(/\/$/, "");
+					for (const mapping of this.folderMappings) {
+						if (
+							!mapping.localFolder ||
+							!mapping.confluenceParentId
+						) {
+							continue; // Skip incomplete mappings
+						}
+						const normalizedFolderPath =
+							mapping.localFolder.replace(/\/$/, "");
+						// Check if file is in this mapped folder or any subfolder
+						if (
+							normalizedFilePath === normalizedFolderPath ||
+							normalizedFilePath.startsWith(
+								normalizedFolderPath + "/",
+							)
+						) {
+							matchesFolder = true;
+							break; // Found a match, no need to check other mappings
+						}
+					}
+				} else {
+					// Fall back to default folderToPublish behavior
+					const folderToPublish =
+						this.settings.folderToPublish?.trim() || "";
+
+					if (folderToPublish === "" || folderToPublish === ".") {
+						// Empty or "." means sync all files
+						matchesFolder = true;
+					} else {
+						// Check if file is in the folder or any subfolder
+						const normalizedFolderPath = folderToPublish.replace(
+							/\/$/,
+							"",
 						);
+						const normalizedFilePath = file.path.replace(/\/$/, "");
+
+						matchesFolder =
+							normalizedFilePath === normalizedFolderPath ||
+							normalizedFilePath.startsWith(
+								normalizedFolderPath + "/",
+							);
+					}
 				}
 
 				if (
