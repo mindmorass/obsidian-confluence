@@ -182,9 +182,8 @@ export class ConfluenceSettingTab extends PluginSettingTab {
 							confluenceParentId: "",
 						});
 						await this.plugin.saveSettings();
-						// Reload settings from disk to ensure we have the latest
-						await this.plugin.loadSettings();
-						this.display(); // Refresh the settings UI
+						// Refresh the settings UI - we already have the updated settings in memory
+						this.display();
 					});
 			});
 

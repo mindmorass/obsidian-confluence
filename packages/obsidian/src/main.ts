@@ -767,44 +767,16 @@ export default class ConfluencePlugin extends Plugin {
 		if (!Array.isArray(this.settings.folderMappings)) {
 			this.settings.folderMappings = [];
 		}
-		// Ensure each mapping has required fields
+		// Filter out invalid mappings (but allow mappings with empty confluenceParentId for new entries)
 		if (this.settings.folderMappings) {
 			this.settings.folderMappings = this.settings.folderMappings.filter(
-				(mapping) =>
-					mapping &&
-					mapping.localFolder &&
-					mapping.confluenceParentId,
+				(mapping) => mapping && mapping.localFolder, // Only require localFolder, confluenceParentId can be empty for new mappings
 			);
 		}
 	}
 
 	async saveSettings() {
-		// Save the settings first
 		await this.saveData(this.settings);
-		// Update the adaptor with the latest settings without reloading from disk
-		// This ensures the changes we just made are preserved
-		// Note: We don't call init() here because it would reload settings from disk
-		// and potentially overwrite the changes we just made
-		if (this.adaptor) {
-			this.adaptor.updateSettings(
-				this.settings,
-				this.settings.folderMappings,
-			);
-		}
-		// Update the publisher's settings loader with the current settings
-		if (
-			this.publisher &&
-			this.adaptor &&
-			this.confluenceClient &&
-			this.mermaidRendererPlugin
-		) {
-			const settingsLoader = new StaticSettingsLoader(this.settings);
-			this.publisher = new Publisher(
-				this.adaptor,
-				settingsLoader,
-				this.confluenceClient,
-				[this.mermaidRendererPlugin],
-			);
-		}
+		await this.init();
 	}
 }
