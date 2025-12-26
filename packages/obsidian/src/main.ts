@@ -779,11 +779,11 @@ export default class ConfluencePlugin extends Plugin {
 	}
 
 	async saveSettings() {
-		// Save the settings
+		// Save the settings first
 		await this.saveData(this.settings);
-		// Reload settings to ensure we have the latest from disk
-		await this.loadSettings();
 		// Reinitialize components with the updated settings
+		// Note: We don't reload settings here because that would overwrite
+		// the changes we just made. The settings object already has the latest values.
 		await this.init();
 	}
 }
