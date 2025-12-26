@@ -123,6 +123,21 @@ export class ElectronMermaidRenderer implements MermaidRenderer {
 		${extraStyles.join("\n")}
 		</style>`;
 
+		// Override dark theme styles to ensure white background for mermaid rendering
+		const mermaidOverrideStyles = `
+		<style>
+		body {
+			background-color: #ffffff !important;
+			color: #000000 !important;
+		}
+		#graphDiv {
+			background-color: #ffffff !important;
+		}
+		#graphDiv svg {
+			background-color: #ffffff !important;
+		}
+		</style>`;
+
 		const fileContents = `
 <!DOCTYPE html>
 <html>
@@ -131,6 +146,7 @@ export class ElectronMermaidRenderer implements MermaidRenderer {
     <title>Mermaid Chart</title>
 	${styleSheetTags}
 	${extraStylesTag}
+	${mermaidOverrideStyles}
   </head>
   <body class="${bodyClasses}">
   	<div id="graphDiv"></div>
