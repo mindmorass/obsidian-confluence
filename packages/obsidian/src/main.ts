@@ -86,6 +86,11 @@ export default class ConfluencePlugin extends Plugin {
 				this.settings,
 				this.app,
 			);
+			// Set folderMappings after creation since constructor doesn't take it
+			this.adaptor.updateSettings(
+				this.settings,
+				this.settings.folderMappings,
+			);
 		}
 
 		const mermaidItems = await this.getMermaidItems();
@@ -342,6 +347,16 @@ export default class ConfluencePlugin extends Plugin {
 			}
 		} else {
 			// No folder mappings, use default behavior
+			// But since we removed confluenceParentId from UI, we need to check if it's set
+			if (
+				!this.settings.confluenceParentId ||
+				this.settings.confluenceParentId.trim() === ""
+			) {
+				returnVal.errorMessage =
+					"Nothing to sync. Please configure folder mappings in the plugin settings. The default parent page ID setting has been removed.";
+				return returnVal;
+			}
+
 			const adrFiles = await this.publisher.publish(publishFilter);
 
 			adrFiles.forEach((element) => {
@@ -741,20 +756,34 @@ export default class ConfluencePlugin extends Plugin {
 	override async onunload() {}
 
 	async loadSettings() {
+		const savedData = await this.loadData();
 		this.settings = Object.assign(
 			{},
 			ConfluenceUploadSettings.DEFAULT_SETTINGS,
 			{ mermaidTheme: "match-obsidian", folderMappings: [] },
-			await this.loadData(),
+			savedData,
 		);
-		// Ensure folderMappings is always an array
-		if (!this.settings.folderMappings) {
+		// Ensure folderMappings is always an array and properly initialized
+		if (!Array.isArray(this.settings.folderMappings)) {
 			this.settings.folderMappings = [];
+		}
+		// Ensure each mapping has required fields
+		if (this.settings.folderMappings) {
+			this.settings.folderMappings = this.settings.folderMappings.filter(
+				(mapping) =>
+					mapping &&
+					mapping.localFolder &&
+					mapping.confluenceParentId,
+			);
 		}
 	}
 
 	async saveSettings() {
+		// Save the settings
 		await this.saveData(this.settings);
+		// Reload settings to ensure we have the latest from disk
+		await this.loadSettings();
+		// Reinitialize components with the updated settings
 		await this.init();
 	}
 }

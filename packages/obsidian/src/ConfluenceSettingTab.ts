@@ -95,28 +95,13 @@ export class ConfluenceSettingTab extends PluginSettingTab {
 					}),
 			);
 
-		new Setting(containerEl)
-			.setName("Default Confluence Parent Page ID")
-			.setDesc(
-				"Default page ID to publish files under (used when no folder mapping matches)",
-			)
-			.addText((text) =>
-				text
-					.setPlaceholder("23232345645")
-					.setValue(this.plugin.settings.confluenceParentId)
-					.onChange(async (value) => {
-						this.plugin.settings.confluenceParentId = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
 		// Folder Mappings section
 		containerEl.createEl("h3", {
 			text: "Folder Mappings",
 		});
 
 		containerEl.createEl("p", {
-			text: "Map local Obsidian folders to specific Confluence parent pages. Files in mapped folders will be published to their corresponding Confluence parent. Files not in any mapped folder will use the default parent page ID above.",
+			text: "Map local Obsidian folders to specific Confluence parent pages. Files in mapped folders will be published to their corresponding Confluence parent.",
 			cls: "setting-item-description",
 		});
 
