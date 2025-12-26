@@ -781,9 +781,30 @@ export default class ConfluencePlugin extends Plugin {
 	async saveSettings() {
 		// Save the settings first
 		await this.saveData(this.settings);
-		// Reinitialize components with the updated settings
-		// Note: We don't reload settings here because that would overwrite
-		// the changes we just made. The settings object already has the latest values.
-		await this.init();
+		// Update the adaptor with the latest settings without reloading from disk
+		// This ensures the changes we just made are preserved
+		// Note: We don't call init() here because it would reload settings from disk
+		// and potentially overwrite the changes we just made
+		if (this.adaptor) {
+			this.adaptor.updateSettings(
+				this.settings,
+				this.settings.folderMappings,
+			);
+		}
+		// Update the publisher's settings loader with the current settings
+		if (
+			this.publisher &&
+			this.adaptor &&
+			this.confluenceClient &&
+			this.mermaidRendererPlugin
+		) {
+			const settingsLoader = new StaticSettingsLoader(this.settings);
+			this.publisher = new Publisher(
+				this.adaptor,
+				settingsLoader,
+				this.confluenceClient,
+				[this.mermaidRendererPlugin],
+			);
+		}
 	}
 }
