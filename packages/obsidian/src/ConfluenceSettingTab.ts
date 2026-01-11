@@ -11,7 +11,7 @@ interface PageTitleCache {
 export class ConfluenceSettingTab extends PluginSettingTab {
 	plugin: ConfluencePlugin;
 	private pageTitleCache: PageTitleCache = {};
-	private readonly CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+	private readonly cacheTtlMs = 5 * 60 * 1000; // 5 minutes
 
 	constructor(app: App, plugin: ConfluencePlugin) {
 		super(app, plugin);
@@ -58,7 +58,7 @@ export class ConfluenceSettingTab extends PluginSettingTab {
 	private async fetchPageTitle(pageId: string): Promise<string | null> {
 		// Check cache first
 		const cached = this.pageTitleCache[pageId];
-		if (cached && Date.now() - cached.fetchedAt < this.CACHE_TTL_MS) {
+		if (cached && Date.now() - cached.fetchedAt < this.cacheTtlMs) {
 			return cached.title;
 		}
 
@@ -347,9 +347,7 @@ export class ConfluenceSettingTab extends PluginSettingTab {
 			});
 
 			// Add text input for Confluence parent page ID
-			let textInput: HTMLInputElement;
 			mappingSetting.addText((text) => {
-				textInput = text.inputEl;
 				text.setPlaceholder("Confluence Parent Page ID")
 					.setValue(mapping.confluenceParentId || "")
 					.onChange(async (value) => {
