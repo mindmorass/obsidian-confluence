@@ -40,6 +40,7 @@ export interface ObsidianPluginSettings
 		| "dark"
 		| "forest";
 	folderMappings?: FolderMapping[];
+	defaultConfluenceParentId?: string;
 }
 
 interface FailedFile {
@@ -236,17 +237,22 @@ export default class ConfluencePlugin extends Plugin {
 					continue;
 				}
 
-				const parentId = this.adaptor.getParentIdForFile(
+				let parentId = this.adaptor.getParentIdForFile(
 					file.absoluteFilePath,
 				);
-				// Only publish files that have a mapping - no default fallback
+
+				// Use default fallback if no specific mapping found
+				if (!parentId && this.settings.defaultConfluenceParentId) {
+					parentId = this.settings.defaultConfluenceParentId;
+				}
+
 				if (parentId) {
 					if (!filesByParentId.has(parentId)) {
 						filesByParentId.set(parentId, []);
 					}
 					filesByParentId.get(parentId)!.push(file);
 				}
-				// Files without a mapping are skipped when folder mappings exist
+				// Files without a mapping and no default are skipped
 			}
 
 			// Create a filtered adaptor wrapper
@@ -290,7 +296,10 @@ export default class ConfluencePlugin extends Plugin {
 			// Check if no files matched any mapping
 			if (filesByParentId.size === 0) {
 				returnVal.errorMessage =
-					"Nothing to sync. There are no Obsidian folder to Confluence mappings configured, or no files match the configured mappings.";
+					"Nothing to sync. No files match the configured folder mappings" +
+					(this.settings.defaultConfluenceParentId
+						? "."
+						: ", and no default parent page is configured.");
 				return returnVal;
 			}
 

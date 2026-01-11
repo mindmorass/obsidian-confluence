@@ -28,19 +28,24 @@ export const ImageUploaderPlugin: ADFProcessingPlugin<
 		imagesToUpload: string[],
 		supportFunctions: PublisherFunctions,
 	): Promise<Record<string, UploadedImageData | null>> {
-		let imageMap: Record<string, UploadedImageData | null> = {};
+		const imageMap: Record<string, UploadedImageData | null> = {};
 
-		for (const imageUrl of imagesToUpload.values()) {
+		// Upload images in parallel for better performance
+		const uploadPromises = imagesToUpload.map(async (imageUrl) => {
 			const filename = imageUrl.split("://")[1];
 			if (!filename) {
-				continue;
+				return { imageUrl, uploadedContent: null };
 			}
 			const uploadedContent = await supportFunctions.uploadFile(filename);
+			return { imageUrl, uploadedContent };
+		});
 
-			imageMap = {
-				...imageMap,
-				[imageUrl]: uploadedContent,
-			};
+		const results = await Promise.all(uploadPromises);
+
+		for (const { imageUrl, uploadedContent } of results) {
+			if (uploadedContent !== null) {
+				imageMap[imageUrl] = uploadedContent;
+			}
 		}
 
 		return imageMap;
