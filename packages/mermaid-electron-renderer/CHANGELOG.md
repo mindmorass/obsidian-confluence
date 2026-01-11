@@ -6,6 +6,89 @@
   * dependencies
     * @markdown-confluence/lib bumped from 3.0.0 to 3.0.1
 
+## [3.0.0](https://github.com/mindmorass/obsidian-confluence/compare/@markdown-confluence/mermaid-electron-renderer-v5.5.2...@markdown-confluence/mermaid-electron-renderer-v3.0.0) (2026-01-11)
+
+
+### Features
+
+* Add npm provenance ([ee76005](https://github.com/mindmorass/obsidian-confluence/commit/ee760054c80d9e385f559c18111b379f30fd3da0))
+* Apply themes from Obsidian to Mermaid ([b599336](https://github.com/mindmorass/obsidian-confluence/commit/b5993369e03cdcc0bdbdd6c83f0b6a18dd8effaa))
+* Make ADF the same as what Confluence returns. ([a223c72](https://github.com/mindmorass/obsidian-confluence/commit/a223c72057fe154f3a47916fb97e1c92830bdf7c))
+* Make mermaid in electron simpler due to being ran in renderer already ([5668e02](https://github.com/mindmorass/obsidian-confluence/commit/5668e025299d46820ae50b25c1a542ced28097ec))
+
+
+### Bug Fixes
+
+* Add `@markdown-confluence/lib` to `markdown-electron-renderer` ([886556a](https://github.com/mindmorass/obsidian-confluence/commit/886556abfb0c2f297c032577b9ce55ed89213d14))
+* Add missing homepage and bugs to package.json ([c920345](https://github.com/mindmorass/obsidian-confluence/commit/c92034563ce2f8d11a40ed2c68b104807eace3be))
+* Add repository information for providence ([362e025](https://github.com/mindmorass/obsidian-confluence/commit/362e0252bd24440f6311286e2b4446ffcf458dc4))
+* Bump version ([f22975a](https://github.com/mindmorass/obsidian-confluence/commit/f22975a0899fa895b06f6ec3be6046d7958e08d5))
+* correct nesting property for callout tokens to support multiple callouts ([f3a8f6d](https://github.com/mindmorass/obsidian-confluence/commit/f3a8f6d9d17067e23ceedc442181088dbd12ac75))
+* Fix issues with puppeteer rendering ([01824b6](https://github.com/mindmorass/obsidian-confluence/commit/01824b60a2fc773550683a671d4ce2e4acb52855))
+* Improve plugin initial load time. Don't create the createObjectURL till first publishing time. ([2c11c8e](https://github.com/mindmorass/obsidian-confluence/commit/2c11c8e0057a4708b76f7ad93e07aa6d15b7548b))
+* NPM Access to Public ([74be60d](https://github.com/mindmorass/obsidian-confluence/commit/74be60d2db7eb106cb55202006b9afa1cb4fea2d))
+* Rename links to align with repo rename ([742e98c](https://github.com/mindmorass/obsidian-confluence/commit/742e98c3b6d29caab074e7a09d744120069b2d99))
+* Run npm build before dev-obsidian to ensure all built ([da1fe60](https://github.com/mindmorass/obsidian-confluence/commit/da1fe60f75973165979e9632a35f33ab9146ebbf))
+* Update Token to support packages ([73d3b54](https://github.com/mindmorass/obsidian-confluence/commit/73d3b544781c927cf847dfe34e839201cb5b92d2))
+
+
+### Dependencies
+
+* Clean up mermaid-electron-renderer package.json ([8137934](https://github.com/mindmorass/obsidian-confluence/commit/81379341178e28046174ceadcb74f271ac0dd10b))
+* **deps:** bump mermaid from 10.1.0 to 10.2.0 ([d2b2080](https://github.com/mindmorass/obsidian-confluence/commit/d2b208067789868d4ac1072e07688183e2faf9f3))
+* **deps:** bump mermaid from 10.2.0 to 10.2.3 ([d04cd97](https://github.com/mindmorass/obsidian-confluence/commit/d04cd97bbfe123e00f99578b079af7183f1df850))
+## [3.0.0](https://github.com/mindmorass/obsidian-confluence/compare/@markdown-confluence/mermaid-electron-renderer-v5.5.2...@markdown-confluence/mermaid-electron-renderer-v3.0.0) (2026-01-11)
+
+
+### Features
+
+* Add npm provenance ([ee76005](https://github.com/mindmorass/obsidian-confluence/commit/ee760054c80d9e385f559c18111b379f30fd3da0))
+* Apply themes from Obsidian to Mermaid ([b599336](https://github.com/mindmorass/obsidian-confluence/commit/b5993369e03cdcc0bdbdd6c83f0b6a18dd8effaa))
+* Make ADF the same as what Confluence returns. ([a223c72](https://github.com/mindmorass/obsidian-confluence/commit/a223c72057fe154f3a47916fb97e1c92830bdf7c))
+* Make mermaid in electron simpler due to being ran in renderer already ([5668e02](https://github.com/mindmorass/obsidian-confluence/commit/5668e025299d46820ae50b25c1a542ced28097ec))
+
+
+### Bug Fixes
+
+* Add `@markdown-confluence/lib` to `markdown-electron-renderer` ([886556a](https://github.com/mindmorass/obsidian-confluence/commit/886556abfb0c2f297c032577b9ce55ed89213d14))
+* Add missing homepage and bugs to package.json ([c920345](https://github.com/mindmorass/obsidian-confluence/commit/c92034563ce2f8d11a40ed2c68b104807eace3be))
+* Add repository information for providence ([362e025](https://github.com/mindmorass/obsidian-confluence/commit/362e0252bd24440f6311286e2b4446ffcf458dc4))
+* Bump version ([f22975a](https://github.com/mindmorass/obsidian-confluence/commit/f22975a0899fa895b06f6ec3be6046d7958e08d5))
+* correct nesting property for callout tokens to support multiple callouts ([f3a8f6d](https://github.com/mindmorass/obsidian-confluence/commit/f3a8f6d9d17067e23ceedc442181088dbd12ac75))
+* Fix issues with puppeteer rendering ([01824b6](https://github.com/mindmorass/obsidian-confluence/commit/01824b60a2fc773550683a671d4ce2e4acb52855))
+* Improve plugin initial load time. Don't create the createObjectURL till first publishing time. ([2c11c8e](https://github.com/mindmorass/obsidian-confluence/commit/2c11c8e0057a4708b76f7ad93e07aa6d15b7548b))
+* NPM Access to Public ([74be60d](https://github.com/mindmorass/obsidian-confluence/commit/74be60d2db7eb106cb55202006b9afa1cb4fea2d))
+* Rename links to align with repo rename ([742e98c](https://github.com/mindmorass/obsidian-confluence/commit/742e98c3b6d29caab074e7a09d744120069b2d99))
+* Run npm build before dev-obsidian to ensure all built ([da1fe60](https://github.com/mindmorass/obsidian-confluence/commit/da1fe60f75973165979e9632a35f33ab9146ebbf))
+* Update Token to support packages ([73d3b54](https://github.com/mindmorass/obsidian-confluence/commit/73d3b544781c927cf847dfe34e839201cb5b92d2))
+
+
+### Dependencies
+
+* Clean up mermaid-electron-renderer package.json ([8137934](https://github.com/mindmorass/obsidian-confluence/commit/81379341178e28046174ceadcb74f271ac0dd10b))
+* **deps:** bump mermaid from 10.1.0 to 10.2.0 ([d2b2080](https://github.com/mindmorass/obsidian-confluence/commit/d2b208067789868d4ac1072e07688183e2faf9f3))
+* **deps:** bump mermaid from 10.2.0 to 10.2.3 ([d04cd97](https://github.com/mindmorass/obsidian-confluence/commit/d04cd97bbfe123e00f99578b079af7183f1df850))
+
+
+### Documentation
+
+* Add README.md files to all NPM Packages ([75c4781](https://github.com/mindmorass/obsidian-confluence/commit/75c47816b7895fd26d50382c316f83d6993cc56c))
+
+
+### Miscellaneous Chores
+
+* release 3.0.0 ([cc12c74](https://github.com/mindmorass/obsidian-confluence/commit/cc12c74227dd7f6f0ed2d52b5120d7b727aa37a1))
+
+
+### Documentation
+
+* Add README.md files to all NPM Packages ([75c4781](https://github.com/mindmorass/obsidian-confluence/commit/75c47816b7895fd26d50382c316f83d6993cc56c))
+
+
+### Miscellaneous Chores
+
+* release 3.0.0 ([cc12c74](https://github.com/mindmorass/obsidian-confluence/commit/cc12c74227dd7f6f0ed2d52b5120d7b727aa37a1))
+
 ## [5.5.2](https://github.com/markdown-confluence/markdown-confluence/compare/@markdown-confluence/mermaid-electron-renderer-v5.5.1...@markdown-confluence/mermaid-electron-renderer-v5.5.2) (2023-09-24)
 
 
