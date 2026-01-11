@@ -41,6 +41,7 @@ export interface LocalAdfFile {
 	dontChangeParentPageId: boolean;
 	contentType: PageContentType;
 	blogPostDate: string | undefined;
+	contentHash: string | undefined;
 }
 
 export interface ConfluenceAdfFile {
@@ -61,6 +62,7 @@ export interface ConfluenceAdfFile {
 
 	contentType: PageContentType;
 	blogPostDate: string | undefined;
+	contentHash: string | undefined;
 }
 
 interface ConfluencePageExistingData {
@@ -88,9 +90,9 @@ export interface ConfluenceTreeNode {
 
 export interface UploadAdfFileResult {
 	adfFile: ConfluenceAdfFile;
-	contentResult: "same" | "updated";
-	imageResult: "same" | "updated";
-	labelResult: "same" | "updated";
+	contentResult: "same" | "updated" | "skipped";
+	imageResult: "same" | "updated" | "skipped";
+	labelResult: "same" | "updated" | "skipped";
 }
 
 export class Publisher {
@@ -164,6 +166,28 @@ export class Publisher {
 		node: ConfluenceNode,
 	): Promise<FilePublishResult> {
 		try {
+			// Check if content hash matches - skip if unchanged
+			const storedHash = node.file.frontmatter["connie-content-hash"];
+			const calculatedHash = node.file.contentHash;
+
+			if (
+				storedHash &&
+				calculatedHash &&
+				typeof storedHash === "string" &&
+				storedHash === calculatedHash
+			) {
+				// Content hash matches - file is unchanged, skip processing
+				return {
+					node,
+					successfulUploadResult: {
+						adfFile: node.file,
+						contentResult: "skipped",
+						imageResult: "skipped",
+						labelResult: "skipped",
+					},
+				};
+			}
+
 			const successfulUploadResult = await this.updatePageContent(
 				node.ancestors,
 				node.version,
@@ -171,6 +195,14 @@ export class Publisher {
 				node.file,
 				node.lastUpdatedBy,
 			);
+
+			// After successful publish, update frontmatter with new content hash
+			if (calculatedHash) {
+				await this.adaptor.updateMarkdownValues(
+					node.file.absoluteFilePath,
+					{ contentHash: calculatedHash },
+				);
+			}
 
 			return {
 				node,

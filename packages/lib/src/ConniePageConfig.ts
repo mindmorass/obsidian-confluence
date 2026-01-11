@@ -14,6 +14,7 @@ export type ConfluencePerPageConfig = {
 	dontChangeParentPageId: FrontmatterConfig<boolean, "boolean">;
 	blogPostDate: FrontmatterConfig<string | undefined, "text">;
 	contentType: FrontmatterConfig<PageContentType, "options">;
+	contentHash: FrontmatterConfig<string | undefined, "text">;
 };
 
 export type InputType = "text" | "array-text" | "boolean" | "options";
@@ -333,6 +334,23 @@ export const conniePerPageConfig: ConfluencePerPageConfig = {
 			}
 
 			return contentType;
+		},
+	},
+	contentHash: {
+		key: "connie-content-hash",
+		default: undefined,
+		inputType: "text",
+		inputValidator: () => {
+			return {
+				valid: true,
+				errors: [],
+			};
+		},
+		process: (yamlValue) => {
+			if (typeof yamlValue === "string") {
+				return yamlValue;
+			}
+			return undefined;
 		},
 	},
 };

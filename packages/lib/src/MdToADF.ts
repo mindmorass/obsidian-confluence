@@ -12,6 +12,7 @@ import { MarkdownToConfluenceCodeBlockLanguageMap } from "./CodeBlockLanguageMap
 import { isSafeUrl } from "@atlaskit/adf-schema";
 import { ConfluenceSettings } from "./Settings";
 import { cleanUpUrlIfConfluence } from "./ConfluenceUrlParser";
+import SparkMD5 from "spark-md5";
 
 const frontmatterRegex = /^\s*?---\n([\s\S]*?)\n---\s*/g;
 
@@ -21,12 +22,13 @@ const serializer = new JSONTransformer();
 export function parseMarkdownToADF(
 	markdown: string,
 	confluenceBaseUrl: string,
+	filePath: string = "",
 ) {
 	const prosenodes = transformer.parse(markdown);
 	// Type cast to work around prosemirror-model version mismatch
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const adfNodes = serializer.encode(prosenodes as unknown as any);
-	const nodes = processADF(adfNodes, confluenceBaseUrl);
+	const nodes = processADF(adfNodes, confluenceBaseUrl, filePath);
 	return nodes;
 }
 
@@ -54,11 +56,11 @@ function isTocParagraph(node: any): boolean {
 }
 
 // Helper function to create a TOC bodiedExtension node
+// Uses a deterministic localId based on file path to avoid unnecessary updates
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function createTocExtensionNode(): any {
-	const localId = `toc-${Date.now()}-${Math.random()
-		.toString(36)
-		.substr(2, 9)}`;
+function createTocExtensionNode(filePath: string): any {
+	// Use hash of file path for deterministic localId
+	const localId = `toc-${SparkMD5.hash(filePath).substring(0, 16)}`;
 
 	return {
 		type: "bodiedExtension",
@@ -92,14 +94,18 @@ function createTocExtensionNode(): any {
 	};
 }
 
-function processADF(adf: JSONDocNode, confluenceBaseUrl: string): JSONDocNode {
+function processADF(
+	adf: JSONDocNode,
+	confluenceBaseUrl: string,
+	filePath: string,
+): JSONDocNode {
 	// First pass: convert TOC paragraphs to bodiedExtension nodes
 	// We need to process the content array directly since traverse doesn't let us replace nodes
 	if (adf.content && Array.isArray(adf.content)) {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		adf.content = adf.content.map((node: any) => {
 			if (isTocParagraph(node)) {
-				return createTocExtensionNode();
+				return createTocExtensionNode(filePath);
 			}
 			return node;
 		});
@@ -232,13 +238,26 @@ export function convertMDtoADF(
 	const adfContent = parseMarkdownToADF(
 		file.contents,
 		settings.confluenceBaseUrl,
+		file.absoluteFilePath,
 	);
 
 	const results = processConniePerPageConfig(file, settings, adfContent);
+
+	// Calculate content hash from the ADF content and relevant metadata
+	// This hash is used to detect changes and skip unchanged files
+	const hashInput = JSON.stringify({
+		adf: adfContent,
+		pageTitle: results.pageTitle,
+		tags: results.tags,
+		contentType: results.contentType,
+		blogPostDate: results.blogPostDate,
+	});
+	const calculatedContentHash = SparkMD5.hash(hashInput);
 
 	return {
 		...file,
 		...results,
 		contents: adfContent,
+		contentHash: calculatedContentHash,
 	};
 }

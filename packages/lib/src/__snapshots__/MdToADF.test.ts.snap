@@ -4,6 +4,7 @@ exports[`parses blockquotes.md 1`] = `
 {
   "absoluteFilePath": "/path/to/blockquotes.md",
   "blogPostDate": undefined,
+  "contentHash": "1ae06150f26539550f297c9f8a7b96d9",
   "contentType": "page",
   "contents": {
     "content": [
@@ -57,6 +58,7 @@ exports[`parses blog.md 1`] = `
 {
   "absoluteFilePath": "/path/to/blog.md",
   "blogPostDate": "2022-01-01",
+  "contentHash": "6dc5d9c27f7801c79d2c4773db6abf1e",
   "contentType": "blogpost",
   "contents": {
     "content": [
@@ -153,6 +155,7 @@ exports[`parses code.md 1`] = `
 {
   "absoluteFilePath": "/path/to/code.md",
   "blogPostDate": undefined,
+  "contentHash": "f0f919e095d065dbf0ff339a6823480a",
   "contentType": "page",
   "contents": {
     "content": [
@@ -209,6 +212,7 @@ exports[`parses emphasis.md 1`] = `
 {
   "absoluteFilePath": "/path/to/emphasis.md",
   "blogPostDate": undefined,
+  "contentHash": "c5631c95981e6ff321784df4a3a1dc8d",
   "contentType": "page",
   "contents": {
     "content": [
@@ -324,6 +328,7 @@ exports[`parses escaping.md 1`] = `
 {
   "absoluteFilePath": "/path/to/escaping.md",
   "blogPostDate": undefined,
+  "contentHash": "9ee8beb170c869059875f037e68ff9ec",
   "contentType": "page",
   "contents": {
     "content": [
@@ -367,6 +372,7 @@ exports[`parses file1.md 1`] = `
 {
   "absoluteFilePath": "/path/to/folder1/file1.md",
   "blogPostDate": undefined,
+  "contentHash": "67ae2c34bda069f506d008d4b715c8e1",
   "contentType": "page",
   "contents": {
     "content": [
@@ -576,6 +582,7 @@ exports[`parses file2.md 1`] = `
 {
   "absoluteFilePath": "/path/to/folder2/file2.md",
   "blogPostDate": undefined,
+  "contentHash": "e99fa3ac64bfdb14334b8955048972bb",
   "contentType": "page",
   "contents": {
     "content": [
@@ -735,6 +742,7 @@ exports[`parses file3.md 1`] = `
 {
   "absoluteFilePath": "/path/to/folder3/file3.md",
   "blogPostDate": undefined,
+  "contentHash": "b33866abe8982cf6e7d5eb714620fbc2",
   "contentType": "page",
   "contents": {
     "content": [
@@ -845,6 +853,7 @@ exports[`parses headers.md 1`] = `
 {
   "absoluteFilePath": "/path/to/headers.md",
   "blogPostDate": undefined,
+  "contentHash": "d6a0943f7975387145d08d3ecf422c08",
   "contentType": "page",
   "contents": {
     "content": [
@@ -942,6 +951,7 @@ exports[`parses horizontal_rules.md 1`] = `
 {
   "absoluteFilePath": "/path/to/horizontal_rules.md",
   "blogPostDate": undefined,
+  "contentHash": "f82a99cd07f89e2ae918c3393b4ba699",
   "contentType": "page",
   "contents": {
     "content": [
@@ -976,6 +986,7 @@ exports[`parses images.md 1`] = `
 {
   "absoluteFilePath": "/path/to/images.md",
   "blogPostDate": undefined,
+  "contentHash": "375875e9cb0f57ba3f4257941cb1f03a",
   "contentType": "page",
   "contents": {
     "content": [
@@ -1035,6 +1046,7 @@ exports[`parses inline_html.md 1`] = `
 {
   "absoluteFilePath": "/path/to/inline_html.md",
   "blogPostDate": undefined,
+  "contentHash": "8e074662120d49c241db996bd9406be2",
   "contentType": "page",
   "contents": {
     "content": [
@@ -1069,6 +1081,7 @@ exports[`parses links.md 1`] = `
 {
   "absoluteFilePath": "/path/to/links.md",
   "blogPostDate": undefined,
+  "contentHash": "f8880b3b3553f00be56e551fc1442810",
   "contentType": "page",
   "contents": {
     "content": [
@@ -1128,6 +1141,7 @@ exports[`parses lists.md 1`] = `
 {
   "absoluteFilePath": "/path/to/lists.md",
   "blogPostDate": undefined,
+  "contentHash": "0686b003837e08a25651c72c6073652f",
   "contentType": "page",
   "contents": {
     "content": [
@@ -1222,6 +1236,7 @@ exports[`parses tables.md 1`] = `
 {
   "absoluteFilePath": "/path/to/tables.md",
   "blogPostDate": undefined,
+  "contentHash": "c1f8e0a3d38572e872bff9e7b6a778bf",
   "contentType": "page",
   "contents": {
     "content": [
@@ -1349,6 +1364,7 @@ exports[`parses tasks.md 1`] = `
 {
   "absoluteFilePath": "/path/to/tasks.md",
   "blogPostDate": "2022-01-01",
+  "contentHash": "530b392bd9daeddcc5cddf3fe0d57055",
   "contentType": "blogpost",
   "contents": {
     "content": [

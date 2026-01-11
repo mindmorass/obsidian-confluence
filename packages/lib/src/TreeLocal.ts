@@ -5,6 +5,7 @@ import { folderFile } from "./FolderFile";
 import { JSONDocNode } from "@atlaskit/editor-json-transformer";
 import { LocalAdfFileTreeNode } from "./Publisher";
 import { ConfluenceSettings } from "./Settings";
+import SparkMD5 from "spark-md5";
 
 const findCommonPath = (paths: string[]): string => {
 	const [firstPath, ...rest] = paths;
@@ -82,6 +83,14 @@ const processNode = (commonPath: string, node: LocalAdfFileTreeNode) => {
 				(child) => child !== indexFile,
 			);
 		} else {
+			// Calculate content hash for folder placeholder file
+			const folderHashInput = JSON.stringify({
+				adf: folderFile,
+				pageTitle: node.name,
+				tags: [],
+				contentType: "page",
+				blogPostDate: undefined,
+			});
 			node.file = {
 				folderName: node.name,
 				absoluteFilePath: path.join(commonPath, node.name),
@@ -94,6 +103,7 @@ const processNode = (commonPath: string, node: LocalAdfFileTreeNode) => {
 				dontChangeParentPageId: false,
 				contentType: "page",
 				blogPostDate: undefined,
+				contentHash: SparkMD5.hash(folderHashInput),
 			};
 		}
 	}
