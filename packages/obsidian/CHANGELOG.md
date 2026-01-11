@@ -7,6 +7,145 @@
     * @markdown-confluence/lib bumped from 3.0.4 to 3.0.0
     * @markdown-confluence/mermaid-electron-renderer bumped from 3.0.4 to 3.0.0
 
+## [3.0.0](https://github.com/mindmorass/obsidian-confluence/compare/obsidian-confluence-v5.5.2...obsidian-confluence-v3.0.0) (2026-01-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* Remove ADFView. It adds a lot of complexity and size to Obsidian Plugin. If you need it log an issue and I will create a separate plugin for that feature.
+* No longer bundling the lib package to help with tree shaking and code navigation
+
+### Features
+
+* Add links to updated pages on Completed Dialog ([65c1a42](https://github.com/mindmorass/obsidian-confluence/commit/65c1a42b7b039512d5582b055f8adfb4f25333c8))
+* Add new setting to allow you to use the first heading as the page title. ([ec4e426](https://github.com/mindmorass/obsidian-confluence/commit/ec4e426700d241c29f84ac25b28893f28f20a555))
+* ADF To Markdown ([7257893](https://github.com/mindmorass/obsidian-confluence/commit/725789372481baef6ba20aaf37a82dc5ca126b2e))
+* Apply themes from Obsidian to Mermaid ([b599336](https://github.com/mindmorass/obsidian-confluence/commit/b5993369e03cdcc0bdbdd6c83f0b6a18dd8effaa))
+* **blog:** Blog support. ([e0bdc24](https://github.com/mindmorass/obsidian-confluence/commit/e0bdc248c9845f4a609f7d9f9c7de388ea183b12))
+* Enable and fix all strict type checks ([c16ee2d](https://github.com/mindmorass/obsidian-confluence/commit/c16ee2d83b6e30065f8c607afda652c4c21af6b3))
+* Handle 404 when pageId included in YAML. Set to not publish and remove bad pageId ([33dde01](https://github.com/mindmorass/obsidian-confluence/commit/33dde014ccc24368f065eec0a92dba3755644fc8))
+* Initial CLI version ([85b4aff](https://github.com/mindmorass/obsidian-confluence/commit/85b4aff13921accf6dd376e18929f3a19087757e))
+* Make ADF the same as what Confluence returns. ([a223c72](https://github.com/mindmorass/obsidian-confluence/commit/a223c72057fe154f3a47916fb97e1c92830bdf7c))
+* Map Inline Comments with best effort ([b1d8db3](https://github.com/mindmorass/obsidian-confluence/commit/b1d8db3eb1d68ebc06c614052ea41693f47842e2))
+* Move ImageUpload and MermaidRendering to plugins to allow for more plugins easily ([cfae670](https://github.com/mindmorass/obsidian-confluence/commit/cfae670d3bc94c4a88d02936c94ca9c1ab47ce9e))
+* Remove ADFView. It adds a lot of complexity and size to Obsidian Plugin ([74c8436](https://github.com/mindmorass/obsidian-confluence/commit/74c84360bf0fe2afeafd4d769f11b41a5f9d6e03))
+* Update a page when you are the last modifier ([5c42d77](https://github.com/mindmorass/obsidian-confluence/commit/5c42d7787cf4c53098759ac221a81369e033df3d))
+* Update Confluence Page Settings Command ([a7d395e](https://github.com/mindmorass/obsidian-confluence/commit/a7d395e5a2ddc9323a683bc9c877f8878740422a))
+* Write `connie-publish: true` to all files that have been published to ensure even if you move the files they still will be published. ([a7d395e](https://github.com/mindmorass/obsidian-confluence/commit/a7d395e5a2ddc9323a683bc9c877f8878740422a))
+
+
+### Bug Fixes
+
+* Add missing homepage and bugs to package.json ([c920345](https://github.com/mindmorass/obsidian-confluence/commit/c92034563ce2f8d11a40ed2c68b104807eace3be))
+* Bump obsidian version ([c42e0d2](https://github.com/mindmorass/obsidian-confluence/commit/c42e0d2335c52a4beddcb0273e17ad287b9166ea))
+* Bump version ([f22975a](https://github.com/mindmorass/obsidian-confluence/commit/f22975a0899fa895b06f6ec3be6046d7958e08d5))
+* Bump version ([a798554](https://github.com/mindmorass/obsidian-confluence/commit/a798554d470e880ab53f689412b0c6aeab269d2c))
+* Bump version I hope ([39b93eb](https://github.com/mindmorass/obsidian-confluence/commit/39b93eba447f2a1f706ff6e65e7e8cabea08bf75))
+* correct nesting property for callout tokens to support multiple callouts ([f3a8f6d](https://github.com/mindmorass/obsidian-confluence/commit/f3a8f6d9d17067e23ceedc442181088dbd12ac75))
+* fmt ([91ff4e9](https://github.com/mindmorass/obsidian-confluence/commit/91ff4e99135b90709ab3f185873b98ce94eb7242))
+* frontmatterHeader adds content direct to ADF instead of Markdown now ([1230878](https://github.com/mindmorass/obsidian-confluence/commit/12308783ae23fbb2fbcd9f39871bf4429c47e18b))
+* Handle #hash links better for names that have spaces and handle internal links ([7ad345a](https://github.com/mindmorass/obsidian-confluence/commit/7ad345af210e346517535faa7a08d801b1660ded))
+* Include README for Obsidian repo and copy obsidian package source into repo to be stamped with release tag ([0ac4de3](https://github.com/mindmorass/obsidian-confluence/commit/0ac4de3f2d37609c49dab043f47a51a83dd594f8))
+* Move SettingsLoaders to own files to help with TreeShaking ([f241a11](https://github.com/mindmorass/obsidian-confluence/commit/f241a11a3967d8a06e827ec100dca15533d38902))
+* noEmit for Obsidian package ([7a36a92](https://github.com/mindmorass/obsidian-confluence/commit/7a36a924f8bd8b97b53d6bdaf8132e8f36191192))
+* npm fmt ([206269c](https://github.com/mindmorass/obsidian-confluence/commit/206269cc887eb75659dd77673318715eb3db1457))
+* Only load CSS that exists for obsidian styles ([c825559](https://github.com/mindmorass/obsidian-confluence/commit/c825559c4c318d665996d4da0b2488666c44fcaa))
+* **ReleasePlease:** Fix to use a different name for package due to the actual obsidian package ([3f94f7e](https://github.com/mindmorass/obsidian-confluence/commit/3f94f7e15745139f7530ae1f86b0334f7d6ff184))
+* Remove ADFView from main.ts ([a21abbd](https://github.com/mindmorass/obsidian-confluence/commit/a21abbd28c8a63cc09989b0cf9ad7d43fc5e56ae))
+* Rename links to align with repo rename ([742e98c](https://github.com/mindmorass/obsidian-confluence/commit/742e98c3b6d29caab074e7a09d744120069b2d99))
+* Update Token to support packages ([73d3b54](https://github.com/mindmorass/obsidian-confluence/commit/73d3b544781c927cf847dfe34e839201cb5b92d2))
+* Updates requested https://github.com/obsidianmd/obsidian-releases/pull/1867#issuecomment-1512710718 ([47c4bf9](https://github.com/mindmorass/obsidian-confluence/commit/47c4bf9d6ba2efb70e2ae62d59623f13f5db9183))
+
+
+### Dependencies
+
+* adf-utils for Obsidian ([3784f95](https://github.com/mindmorass/obsidian-confluence/commit/3784f9536f642092330ca12f67fdf8047c7c88d3))
+* **deps:** bump @atlaskit/editor-json-transformer from 8.8.3 to 8.8.4 ([b9a4496](https://github.com/mindmorass/obsidian-confluence/commit/b9a4496c9963b8da44dc89a602865077fa912028))
+* **deps:** bump @atlaskit/renderer from 107.3.2 to 107.3.3 ([252f911](https://github.com/mindmorass/obsidian-confluence/commit/252f911d42bcdeee1febadfbd6e90e226416b990))
+## [3.0.0](https://github.com/mindmorass/obsidian-confluence/compare/obsidian-confluence-v5.5.2...obsidian-confluence-v3.0.0) (2026-01-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* Remove ADFView. It adds a lot of complexity and size to Obsidian Plugin. If you need it log an issue and I will create a separate plugin for that feature.
+* No longer bundling the lib package to help with tree shaking and code navigation
+
+### Features
+
+* Add links to updated pages on Completed Dialog ([65c1a42](https://github.com/mindmorass/obsidian-confluence/commit/65c1a42b7b039512d5582b055f8adfb4f25333c8))
+* Add new setting to allow you to use the first heading as the page title. ([ec4e426](https://github.com/mindmorass/obsidian-confluence/commit/ec4e426700d241c29f84ac25b28893f28f20a555))
+* ADF To Markdown ([7257893](https://github.com/mindmorass/obsidian-confluence/commit/725789372481baef6ba20aaf37a82dc5ca126b2e))
+* Apply themes from Obsidian to Mermaid ([b599336](https://github.com/mindmorass/obsidian-confluence/commit/b5993369e03cdcc0bdbdd6c83f0b6a18dd8effaa))
+* **blog:** Blog support. ([e0bdc24](https://github.com/mindmorass/obsidian-confluence/commit/e0bdc248c9845f4a609f7d9f9c7de388ea183b12))
+* Enable and fix all strict type checks ([c16ee2d](https://github.com/mindmorass/obsidian-confluence/commit/c16ee2d83b6e30065f8c607afda652c4c21af6b3))
+* Handle 404 when pageId included in YAML. Set to not publish and remove bad pageId ([33dde01](https://github.com/mindmorass/obsidian-confluence/commit/33dde014ccc24368f065eec0a92dba3755644fc8))
+* Initial CLI version ([85b4aff](https://github.com/mindmorass/obsidian-confluence/commit/85b4aff13921accf6dd376e18929f3a19087757e))
+* Make ADF the same as what Confluence returns. ([a223c72](https://github.com/mindmorass/obsidian-confluence/commit/a223c72057fe154f3a47916fb97e1c92830bdf7c))
+* Map Inline Comments with best effort ([b1d8db3](https://github.com/mindmorass/obsidian-confluence/commit/b1d8db3eb1d68ebc06c614052ea41693f47842e2))
+* Move ImageUpload and MermaidRendering to plugins to allow for more plugins easily ([cfae670](https://github.com/mindmorass/obsidian-confluence/commit/cfae670d3bc94c4a88d02936c94ca9c1ab47ce9e))
+* Remove ADFView. It adds a lot of complexity and size to Obsidian Plugin ([74c8436](https://github.com/mindmorass/obsidian-confluence/commit/74c84360bf0fe2afeafd4d769f11b41a5f9d6e03))
+* Update a page when you are the last modifier ([5c42d77](https://github.com/mindmorass/obsidian-confluence/commit/5c42d7787cf4c53098759ac221a81369e033df3d))
+* Update Confluence Page Settings Command ([a7d395e](https://github.com/mindmorass/obsidian-confluence/commit/a7d395e5a2ddc9323a683bc9c877f8878740422a))
+* Write `connie-publish: true` to all files that have been published to ensure even if you move the files they still will be published. ([a7d395e](https://github.com/mindmorass/obsidian-confluence/commit/a7d395e5a2ddc9323a683bc9c877f8878740422a))
+
+
+### Bug Fixes
+
+* Add missing homepage and bugs to package.json ([c920345](https://github.com/mindmorass/obsidian-confluence/commit/c92034563ce2f8d11a40ed2c68b104807eace3be))
+* Bump obsidian version ([c42e0d2](https://github.com/mindmorass/obsidian-confluence/commit/c42e0d2335c52a4beddcb0273e17ad287b9166ea))
+* Bump version ([f22975a](https://github.com/mindmorass/obsidian-confluence/commit/f22975a0899fa895b06f6ec3be6046d7958e08d5))
+* Bump version ([a798554](https://github.com/mindmorass/obsidian-confluence/commit/a798554d470e880ab53f689412b0c6aeab269d2c))
+* Bump version I hope ([39b93eb](https://github.com/mindmorass/obsidian-confluence/commit/39b93eba447f2a1f706ff6e65e7e8cabea08bf75))
+* correct nesting property for callout tokens to support multiple callouts ([f3a8f6d](https://github.com/mindmorass/obsidian-confluence/commit/f3a8f6d9d17067e23ceedc442181088dbd12ac75))
+* fmt ([91ff4e9](https://github.com/mindmorass/obsidian-confluence/commit/91ff4e99135b90709ab3f185873b98ce94eb7242))
+* frontmatterHeader adds content direct to ADF instead of Markdown now ([1230878](https://github.com/mindmorass/obsidian-confluence/commit/12308783ae23fbb2fbcd9f39871bf4429c47e18b))
+* Handle #hash links better for names that have spaces and handle internal links ([7ad345a](https://github.com/mindmorass/obsidian-confluence/commit/7ad345af210e346517535faa7a08d801b1660ded))
+* Include README for Obsidian repo and copy obsidian package source into repo to be stamped with release tag ([0ac4de3](https://github.com/mindmorass/obsidian-confluence/commit/0ac4de3f2d37609c49dab043f47a51a83dd594f8))
+* Move SettingsLoaders to own files to help with TreeShaking ([f241a11](https://github.com/mindmorass/obsidian-confluence/commit/f241a11a3967d8a06e827ec100dca15533d38902))
+* noEmit for Obsidian package ([7a36a92](https://github.com/mindmorass/obsidian-confluence/commit/7a36a924f8bd8b97b53d6bdaf8132e8f36191192))
+* npm fmt ([206269c](https://github.com/mindmorass/obsidian-confluence/commit/206269cc887eb75659dd77673318715eb3db1457))
+* Only load CSS that exists for obsidian styles ([c825559](https://github.com/mindmorass/obsidian-confluence/commit/c825559c4c318d665996d4da0b2488666c44fcaa))
+* **ReleasePlease:** Fix to use a different name for package due to the actual obsidian package ([3f94f7e](https://github.com/mindmorass/obsidian-confluence/commit/3f94f7e15745139f7530ae1f86b0334f7d6ff184))
+* Remove ADFView from main.ts ([a21abbd](https://github.com/mindmorass/obsidian-confluence/commit/a21abbd28c8a63cc09989b0cf9ad7d43fc5e56ae))
+* Rename links to align with repo rename ([742e98c](https://github.com/mindmorass/obsidian-confluence/commit/742e98c3b6d29caab074e7a09d744120069b2d99))
+* Update Token to support packages ([73d3b54](https://github.com/mindmorass/obsidian-confluence/commit/73d3b544781c927cf847dfe34e839201cb5b92d2))
+* Updates requested https://github.com/obsidianmd/obsidian-releases/pull/1867#issuecomment-1512710718 ([47c4bf9](https://github.com/mindmorass/obsidian-confluence/commit/47c4bf9d6ba2efb70e2ae62d59623f13f5db9183))
+
+
+### Dependencies
+
+* adf-utils for Obsidian ([3784f95](https://github.com/mindmorass/obsidian-confluence/commit/3784f9536f642092330ca12f67fdf8047c7c88d3))
+* **deps:** bump @atlaskit/editor-json-transformer from 8.8.3 to 8.8.4 ([b9a4496](https://github.com/mindmorass/obsidian-confluence/commit/b9a4496c9963b8da44dc89a602865077fa912028))
+* **deps:** bump @atlaskit/renderer from 107.3.2 to 107.3.3 ([252f911](https://github.com/mindmorass/obsidian-confluence/commit/252f911d42bcdeee1febadfbd6e90e226416b990))
+
+
+### Documentation
+
+* Add note about logging issues to mono repo ([19992f6](https://github.com/mindmorass/obsidian-confluence/commit/19992f6705e0882025a1f8100b4ef42903df71e8))
+* amended the broken readme image paths for obsidian package ([97876cf](https://github.com/mindmorass/obsidian-confluence/commit/97876cf7c55e3ac4de89d85a70dfd4ba4e8b3f15))
+* Fix docs when they are published to obsidian-integration repo ([bb5887b](https://github.com/mindmorass/obsidian-confluence/commit/bb5887b96fcd27678c52552576defd0fda8dcf19))
+* Update Obsidian docs to remove need for BRAT install ([9fc8fc8](https://github.com/mindmorass/obsidian-confluence/commit/9fc8fc8236c369b53c3d5bdcc63777525f30a0c9))
+* Update repo and org names to match new names ([404a85b](https://github.com/mindmorass/obsidian-confluence/commit/404a85b206704873d57c233131ba4f564c4ccd86))
+
+
+### Miscellaneous Chores
+
+* release 3.0.0 ([cc12c74](https://github.com/mindmorass/obsidian-confluence/commit/cc12c74227dd7f6f0ed2d52b5120d7b727aa37a1))
+
+
+### Documentation
+
+* Add note about logging issues to mono repo ([19992f6](https://github.com/mindmorass/obsidian-confluence/commit/19992f6705e0882025a1f8100b4ef42903df71e8))
+* amended the broken readme image paths for obsidian package ([97876cf](https://github.com/mindmorass/obsidian-confluence/commit/97876cf7c55e3ac4de89d85a70dfd4ba4e8b3f15))
+* Fix docs when they are published to obsidian-integration repo ([bb5887b](https://github.com/mindmorass/obsidian-confluence/commit/bb5887b96fcd27678c52552576defd0fda8dcf19))
+* Update Obsidian docs to remove need for BRAT install ([9fc8fc8](https://github.com/mindmorass/obsidian-confluence/commit/9fc8fc8236c369b53c3d5bdcc63777525f30a0c9))
+* Update repo and org names to match new names ([404a85b](https://github.com/mindmorass/obsidian-confluence/commit/404a85b206704873d57c233131ba4f564c4ccd86))
+
+
+### Miscellaneous Chores
+
+* release 3.0.0 ([cc12c74](https://github.com/mindmorass/obsidian-confluence/commit/cc12c74227dd7f6f0ed2d52b5120d7b727aa37a1))
+
 ## [5.5.2](https://github.com/markdown-confluence/markdown-confluence/compare/obsidian-confluence-v5.5.1...obsidian-confluence-v5.5.2) (2023-09-24)
 
 
