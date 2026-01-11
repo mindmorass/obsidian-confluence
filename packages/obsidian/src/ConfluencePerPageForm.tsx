@@ -84,6 +84,7 @@ const handleChange = (
 ) => {
   const validationResult = inputValidator(value);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setValues((prevValues: any) => ({
     ...prevValues,
     [key]: {
@@ -91,6 +92,7 @@ const handleChange = (
       ...(isSetValue ? { isSet: value } : { value }),
     },
   }));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setErrors((prevErrors: any) => ({
     ...prevErrors,
     [key]: validationResult.valid ? [] : validationResult.errors,
@@ -410,8 +412,11 @@ const ConfluenceForm: React.FC<FormProps> = ({
   initialValues,
   onSubmit,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   config: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialValues: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSubmit: any;
 }) => {
   const [values, setValues] =
@@ -435,6 +440,7 @@ const ConfluenceForm: React.FC<FormProps> = ({
           </tr>
         </thead>
         <tbody>
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {Object.entries(config).map(([key, config]: [string, any]) => {
             switch (config.inputType) {
               case "text":

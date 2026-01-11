@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { expect, test, beforeAll, afterAll } from "@jest/globals";
 import { Pact, Matchers } from "@pact-foundation/pact";
-import axios, { AxiosInstance } from "axios";
 import { ConfluenceClient } from "confluence.js";
 import {
 	BinaryFile,
@@ -9,7 +8,6 @@ import {
 	LoaderAdaptor,
 	MarkdownFile,
 } from "./adaptors";
-import { orderMarks } from "./AdfEqual";
 import { ConfluencePerPageAllValues } from "./ConniePageConfig";
 import { Publisher } from "./Publisher";
 import { StaticSettingsLoader } from "./SettingsLoader";

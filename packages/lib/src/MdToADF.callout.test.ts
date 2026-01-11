@@ -103,9 +103,6 @@ describe("Callout conversion", () => {
 
 		expect(panelNode).toBeDefined();
 
-		// Serialize to JSON and check that there's no hardBreak at the start
-		const panelJson = JSON.stringify(panelNode);
-
 		// Find the first content node in the panel
 		if (panelNode?.content && panelNode.content.length > 0) {
 			const firstContentJson = JSON.stringify(panelNode.content[0]);

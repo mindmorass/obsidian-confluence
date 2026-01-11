@@ -24,12 +24,14 @@ export function parseMarkdownToADF(
 ) {
 	const prosenodes = transformer.parse(markdown);
 	// Type cast to work around prosemirror-model version mismatch
-	const adfNodes = serializer.encode(prosenodes as any);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const adfNodes = serializer.encode(prosenodes as unknown as any);
 	const nodes = processADF(adfNodes, confluenceBaseUrl);
 	return nodes;
 }
 
 // Helper function to check if a paragraph contains only [toc] or <!-- toc -->
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isTocParagraph(node: any): boolean {
 	if (node.type !== "paragraph" || !node.content) {
 		return false;
@@ -37,7 +39,9 @@ function isTocParagraph(node: any): boolean {
 
 	// Check if paragraph contains only text nodes with [toc] or <!-- toc -->
 	const textContent = node.content
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		.filter((child: any) => child.type === "text")
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		.map((child: any) => child.text || "")
 		.join("")
 		.trim();
@@ -50,6 +54,7 @@ function isTocParagraph(node: any): boolean {
 }
 
 // Helper function to create a TOC bodiedExtension node
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createTocExtensionNode(): any {
 	const localId = `toc-${Date.now()}-${Math.random()
 		.toString(36)
@@ -91,6 +96,7 @@ function processADF(adf: JSONDocNode, confluenceBaseUrl: string): JSONDocNode {
 	// First pass: convert TOC paragraphs to bodiedExtension nodes
 	// We need to process the content array directly since traverse doesn't let us replace nodes
 	if (adf.content && Array.isArray(adf.content)) {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		adf.content = adf.content.map((node: any) => {
 			if (isTocParagraph(node)) {
 				return createTocExtensionNode();
