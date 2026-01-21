@@ -84,13 +84,24 @@ export const ImageUploaderPlugin: ADFProcessingPlugin<
 					if (!node || !node.content) {
 						return;
 					}
+					const mediaNode = node.content.at(0);
+					// Check if image failed to upload (still has file:// url)
 					if (
-						node.content.at(0)?.attrs?.["url"] !== undefined &&
-						(
-							node.content.at(0)?.attrs?.["url"] as string
-						).startsWith("file://")
+						mediaNode?.attrs?.["url"] !== undefined &&
+						(mediaNode?.attrs?.["url"] as string).startsWith(
+							"file://",
+						)
 					) {
 						return p("Invalid Image Path");
+					}
+					// Set layout for successfully uploaded images to ensure consistent rendering
+					if (
+						mediaNode?.attrs?.["collection"] !== undefined &&
+						!node.attrs?.["layout"]
+					) {
+						node.attrs = node.attrs || {};
+						node.attrs["layout"] = "center";
+						return node;
 					}
 					return;
 				},
