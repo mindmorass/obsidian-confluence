@@ -50,7 +50,7 @@
         "@atlaskit/editor-json-transformer": "^8.10.9",
         "confluence.js": "^1.6.3",
         "esbuild": "0.27.2",
-        "formdata-node": "^5.0.1",
+        "formdata-node": "^6.0.3",
         "glob": "^10.2.7",
         "gray-matter": "^4.0.3",
         "image-size": "^1.0.2",
