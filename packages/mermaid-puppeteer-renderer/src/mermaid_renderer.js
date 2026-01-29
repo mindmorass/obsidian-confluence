@@ -8,9 +8,19 @@ window.renderMermaidChart = async (chartData, mermaidConfig) => {
 	chartElement.innerHTML = svg;
 
 	const svgElement = document.querySelector("#graphDiv svg");
+
+	// Ensure overflow content (labels, annotations) is visible for capture
+	svgElement.style.overflow = "visible";
+
 	const rect = svgElement.getBoundingClientRect();
+
+	// Also check container scroll dimensions to catch any overflow content
+	// that extends beyond the SVG element's bounding box
+	const scrollWidth = chartElement.scrollWidth;
+	const scrollHeight = chartElement.scrollHeight;
+
 	return {
-		width: Math.ceil(rect.width),
-		height: Math.ceil(rect.height),
+		width: Math.ceil(Math.max(rect.width, scrollWidth)),
+		height: Math.ceil(Math.max(rect.height, scrollHeight)),
 	};
 };

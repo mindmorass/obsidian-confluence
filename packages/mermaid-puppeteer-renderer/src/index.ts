@@ -73,6 +73,15 @@ export class PuppeteerMermaidRenderer implements MermaidRenderer {
 			for (const chart of charts) {
 				const page = await browser.newPage();
 				try {
+					// Set a large viewport with deviceScaleFactor upfront.
+					// This avoids reflow issues from resizing the viewport
+					// after the SVG has been rendered and measured.
+					await page.setViewport({
+						width: 1920,
+						height: 1080,
+						deviceScaleFactor: 2,
+					});
+
 					await page.goto(pathToLoad);
 
 					const result = await page.evaluate(
@@ -89,16 +98,17 @@ export class PuppeteerMermaidRenderer implements MermaidRenderer {
 						mermaidConfig,
 					);
 
-					// Add padding to prevent edge clipping
-					const padding = 4;
-					await page.setViewport({
-						width: result.width + padding,
-						height: result.height + padding,
-						deviceScaleFactor: 2,
-					});
-
+					// Use clip to capture just the chart area rather than
+					// resizing the viewport (which can cause SVG reflow and
+					// bottom truncation)
+					const padding = 10;
 					const imageBuffer = await page.screenshot({
-						fullPage: true,
+						clip: {
+							x: 0,
+							y: 0,
+							width: result.width + padding,
+							height: result.height + padding,
+						},
 						omitBackground: false,
 					});
 					// Convert Uint8Array to Buffer if needed
