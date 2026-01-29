@@ -12,6 +12,7 @@ export type ConfluencePerPageConfig = {
 	tags: FrontmatterConfig<string[], "array-text">;
 	pageId: FrontmatterConfig<string | undefined, "text">;
 	dontChangeParentPageId: FrontmatterConfig<boolean, "boolean">;
+	forceImages: FrontmatterConfig<boolean, "boolean">;
 	blogPostDate: FrontmatterConfig<string | undefined, "text">;
 	contentType: FrontmatterConfig<PageContentType, "options">;
 	contentHash: FrontmatterConfig<string | undefined, "text">;
@@ -241,6 +242,19 @@ export const conniePerPageConfig: ConfluencePerPageConfig = {
 			typeof dontChangeParentPageId === "boolean"
 				? dontChangeParentPageId
 				: false,
+	},
+	forceImages: {
+		key: "connie-force-images",
+		default: false,
+		inputType: "boolean",
+		inputValidator: () => {
+			return {
+				valid: true,
+				errors: [],
+			};
+		},
+		process: (forceImages) =>
+			typeof forceImages === "boolean" ? forceImages : false,
 	},
 	blogPostDate: {
 		key: "connie-blog-post-date",

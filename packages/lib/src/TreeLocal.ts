@@ -101,6 +101,7 @@ const processNode = (commonPath: string, node: LocalAdfFileTreeNode) => {
 				tags: [],
 				pageId: undefined,
 				dontChangeParentPageId: false,
+				forceImages: false,
 				contentType: "page",
 				blogPostDate: undefined,
 				contentHash: SparkMD5.hash(folderHashInput),

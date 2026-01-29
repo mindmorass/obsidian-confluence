@@ -39,6 +39,7 @@ export interface LocalAdfFile {
 	tags: string[];
 	pageId: string | undefined;
 	dontChangeParentPageId: boolean;
+	forceImages: boolean;
 	contentType: PageContentType;
 	blogPostDate: string | undefined;
 	contentHash: string | undefined;
@@ -55,6 +56,7 @@ export interface ConfluenceAdfFile {
 	};
 	tags: string[];
 	dontChangeParentPageId: boolean;
+	forceImages: boolean;
 
 	pageId: string;
 	spaceKey: string;
@@ -166,11 +168,14 @@ export class Publisher {
 		node: ConfluenceNode,
 	): Promise<FilePublishResult> {
 		try {
+			const forceImages = node.file.forceImages;
+
 			// Check if content hash matches - skip if unchanged
 			const storedHash = node.file.frontmatter["connie-content-hash"];
 			const calculatedHash = node.file.contentHash;
 
 			if (
+				!forceImages &&
 				storedHash &&
 				calculatedHash &&
 				typeof storedHash === "string" &&
@@ -194,13 +199,22 @@ export class Publisher {
 				node.existingPageData,
 				node.file,
 				node.lastUpdatedBy,
+				forceImages,
 			);
 
 			// After successful publish, update frontmatter with new content hash
+			// and clear force-images flag if it was set
+			const markdownUpdates: Record<string, unknown> = {};
 			if (calculatedHash) {
+				markdownUpdates["contentHash"] = calculatedHash;
+			}
+			if (forceImages) {
+				markdownUpdates["forceImages"] = false;
+			}
+			if (Object.keys(markdownUpdates).length > 0) {
 				await this.adaptor.updateMarkdownValues(
 					node.file.absoluteFilePath,
-					{ contentHash: calculatedHash },
+					markdownUpdates,
 				);
 			}
 
@@ -229,6 +243,7 @@ export class Publisher {
 		existingPageData: ConfluencePageExistingData,
 		adfFile: ConfluenceAdfFile,
 		lastUpdatedBy: string,
+		forceImages: boolean = false,
 	): Promise<UploadAdfFileResult> {
 		if (lastUpdatedBy !== this.myAccountId) {
 			throw new Error(
@@ -253,17 +268,18 @@ export class Publisher {
 				id: adfFile.pageId,
 			});
 
-		const currentAttachments: CurrentAttachments =
-			currentUploadedAttachments.results.reduce((prev, curr) => {
-				return {
-					...prev,
-					[`${curr.title}`]: {
-						filehash: curr.metadata.comment,
-						attachmentId: curr.extensions.fileId,
-						collectionName: curr.extensions.collectionName,
-					},
-				};
-			}, {});
+		const currentAttachments: CurrentAttachments = forceImages
+			? {}
+			: currentUploadedAttachments.results.reduce((prev, curr) => {
+					return {
+						...prev,
+						[`${curr.title}`]: {
+							filehash: curr.metadata.comment,
+							attachmentId: curr.extensions.fileId,
+							collectionName: curr.extensions.collectionName,
+						},
+					};
+			  }, {});
 
 		// Track image uploads to determine if images actually changed
 		const imageUploadStatuses: ("existing" | "uploaded")[] = [];
