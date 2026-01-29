@@ -89,12 +89,18 @@ export class PuppeteerMermaidRenderer implements MermaidRenderer {
 						mermaidConfig,
 					);
 
+					// Add padding to prevent edge clipping
+					const padding = 4;
 					await page.setViewport({
-						width: result.width,
-						height: result.height,
+						width: result.width + padding,
+						height: result.height + padding,
+						deviceScaleFactor: 2,
 					});
 
-					const imageBuffer = await page.screenshot();
+					const imageBuffer = await page.screenshot({
+						fullPage: true,
+						omitBackground: false,
+					});
 					// Convert Uint8Array to Buffer if needed
 					const buffer = Buffer.isBuffer(imageBuffer)
 						? imageBuffer

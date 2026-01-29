@@ -28,15 +28,21 @@ const mermaidRendererPlugin = {
     <meta charset="UTF-8" />
     <title>Mermaid Chart</title>
     <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
       body {
         background-color: #ffffff !important;
         color: #000000 !important;
       }
       #graphDiv {
         background-color: #ffffff !important;
+        display: inline-block;
       }
       #graphDiv svg {
         background-color: #ffffff !important;
+        display: block;
       }
     </style>
   </head>

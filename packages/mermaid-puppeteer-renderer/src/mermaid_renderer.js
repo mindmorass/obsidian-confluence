@@ -8,8 +8,9 @@ window.renderMermaidChart = async (chartData, mermaidConfig) => {
 	chartElement.innerHTML = svg;
 
 	const svgElement = document.querySelector("#graphDiv svg");
+	const rect = svgElement.getBoundingClientRect();
 	return {
-		width: svgElement.scrollWidth,
-		height: svgElement.scrollHeight,
+		width: Math.ceil(rect.width),
+		height: Math.ceil(rect.height),
 	};
 };
