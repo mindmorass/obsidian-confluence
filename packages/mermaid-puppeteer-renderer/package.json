@@ -18,7 +18,7 @@
     "author": "andymac4182",
     "license": "Apache 2.0",
     "dependencies": {
-        "@atlaskit/editor-common": "^74.0.1",
+        "@atlaskit/editor-common": "^111.10.0",
         "@markdown-confluence/lib": "5.5.3",
         "esbuild": "0.27.2",
         "mermaid": "^10.9.5",
