@@ -9,18 +9,24 @@ window.renderMermaidChart = async (chartData, mermaidConfig) => {
 
 	const svgElement = document.querySelector("#graphDiv svg");
 
-	// Ensure overflow content (labels, annotations) is visible for capture
+	// Allow overflow so getBBox() can measure all graphical content
 	svgElement.style.overflow = "visible";
 
-	const rect = svgElement.getBoundingClientRect();
+	// getBBox() returns the tight bounding box of ALL graphical content
+	// in SVG user coordinates, including elements that overflow the
+	// declared viewBox. This is more accurate than getBoundingClientRect()
+	// (CSS layout box) or scrollWidth/scrollHeight (scrollable area).
+	const bbox = svgElement.getBBox();
 
-	// Also check container scroll dimensions to catch any overflow content
-	// that extends beyond the SVG element's bounding box
-	const scrollWidth = chartElement.scrollWidth;
-	const scrollHeight = chartElement.scrollHeight;
+	const padding = 10;
+	const x = bbox.x - padding;
+	const y = bbox.y - padding;
+	const width = bbox.width + padding * 2;
+	const height = bbox.height + padding * 2;
 
-	return {
-		width: Math.ceil(Math.max(rect.width, scrollWidth)),
-		height: Math.ceil(Math.max(rect.height, scrollHeight)),
-	};
+	// Update the SVG to encompass all graphical content so the
+	// container element (#graphDiv) sizes correctly for screenshot
+	svgElement.setAttribute("viewBox", `${x} ${y} ${width} ${height}`);
+	svgElement.setAttribute("width", `${Math.ceil(width)}`);
+	svgElement.setAttribute("height", `${Math.ceil(height)}`);
 };

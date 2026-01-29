@@ -9,7 +9,7 @@ interface RemoteWindowedCustomFunctions {
 	renderMermaidChart: (
 		mermaidData: string,
 		mermaidConfig: unknown,
-	) => Promise<{ width: number; height: number }>;
+	) => Promise<void>;
 }
 
 const mermaidConfig = {
@@ -84,7 +84,7 @@ export class PuppeteerMermaidRenderer implements MermaidRenderer {
 
 					await page.goto(pathToLoad);
 
-					const result = await page.evaluate(
+					await page.evaluate(
 						(mermaidData, mermaidConfig) => {
 							const { renderMermaidChart } =
 								globalThis as unknown as RemoteWindowedCustomFunctions;
@@ -98,17 +98,15 @@ export class PuppeteerMermaidRenderer implements MermaidRenderer {
 						mermaidConfig,
 					);
 
-					// Use clip to capture just the chart area rather than
-					// resizing the viewport (which can cause SVG reflow and
-					// bottom truncation)
-					const padding = 10;
-					const imageBuffer = await page.screenshot({
-						clip: {
-							x: 0,
-							y: 0,
-							width: result.width + padding,
-							height: result.height + padding,
-						},
+					// Screenshot the chart container element directly.
+					// The browser-side code (mermaid_renderer.js) uses
+					// getBBox() to resize the SVG to fit all graphical
+					// content, so #graphDiv wraps it exactly.
+					const chartElement = await page.$("#graphDiv");
+					if (!chartElement) {
+						throw new Error("Chart container #graphDiv not found");
+					}
+					const imageBuffer = await chartElement.screenshot({
 						omitBackground: false,
 					});
 					// Convert Uint8Array to Buffer if needed
