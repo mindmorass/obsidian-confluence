@@ -1,5 +1,18 @@
 # Changelog
 
+## [5.5.3](https://github.com/mindmorass/obsidian-confluence/compare/obsidian-confluence-root-v5.5.2...obsidian-confluence-root-v5.5.3) (2026-01-30)
+
+
+### Bug Fixes
+
+* correct nesting property for callout tokens to support multiple callouts ([f3a8f6d](https://github.com/mindmorass/obsidian-confluence/commit/f3a8f6d9d17067e23ceedc442181088dbd12ac75))
+* update actions/upload-artifact to v4.3.1 ([32c70c9](https://github.com/mindmorass/obsidian-confluence/commit/32c70c9f22dbf0a5a9a369ca5e91603d30f41381))
+
+
+### Documentation
+
+* add verification report for all changes ([17e1618](https://github.com/mindmorass/obsidian-confluence/commit/17e16187e7a7e1b7593d86ff911438986b81fd67))
+
 ## [5.5.2](https://github.com/markdown-confluence/markdown-confluence/compare/obsidian-confluence-root-v5.5.1...obsidian-confluence-root-v5.5.2) (2023-09-24)
 
 
