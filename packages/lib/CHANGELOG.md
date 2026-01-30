@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.5.3](https://github.com/mindmorass/obsidian-confluence/compare/@markdown-confluence/lib-v5.5.2...@markdown-confluence/lib-v5.5.3) (2026-01-30)
+
+
+### Bug Fixes
+
+* correct nesting property for callout tokens to support multiple callouts ([f3a8f6d](https://github.com/mindmorass/obsidian-confluence/commit/f3a8f6d9d17067e23ceedc442181088dbd12ac75))
+
 ## [5.5.2](https://github.com/markdown-confluence/markdown-confluence/compare/@markdown-confluence/lib-v5.5.1...@markdown-confluence/lib-v5.5.2) (2023-09-24)
 
 
