@@ -9,7 +9,7 @@ interface RemoteWindowedCustomFunctions {
 	renderMermaidChart: (
 		mermaidData: string,
 		mermaidConfig: unknown,
-	) => Promise<void>;
+	) => Promise<{ x: number; y: number; width: number; height: number }>;
 }
 
 const mermaidConfig = {
@@ -73,9 +73,8 @@ export class PuppeteerMermaidRenderer implements MermaidRenderer {
 			for (const chart of charts) {
 				const page = await browser.newPage();
 				try {
-					// Set a large viewport with deviceScaleFactor upfront.
-					// This avoids reflow issues from resizing the viewport
-					// after the SVG has been rendered and measured.
+					// Start with a large viewport so the SVG renders
+					// without being constrained by viewport size.
 					await page.setViewport({
 						width: 1920,
 						height: 1080,
@@ -84,7 +83,9 @@ export class PuppeteerMermaidRenderer implements MermaidRenderer {
 
 					await page.goto(pathToLoad);
 
-					await page.evaluate(
+					// Render the mermaid chart and get the SVG's CSS
+					// bounding rect back (after getBBox()-based resize).
+					const svgRect = await page.evaluate(
 						(mermaidData, mermaidConfig) => {
 							const { renderMermaidChart } =
 								globalThis as unknown as RemoteWindowedCustomFunctions;
@@ -98,15 +99,26 @@ export class PuppeteerMermaidRenderer implements MermaidRenderer {
 						mermaidConfig,
 					);
 
-					// Screenshot the chart container element directly.
-					// The browser-side code (mermaid_renderer.js) uses
-					// getBBox() to resize the SVG to fit all graphical
-					// content, so #graphDiv wraps it exactly.
-					const chartElement = await page.$("#graphDiv");
-					if (!chartElement) {
-						throw new Error("Chart container #graphDiv not found");
-					}
-					const imageBuffer = await chartElement.screenshot({
+					// Compute the clip region using mermaid-cli's rounding
+					// pattern: floor for position, ceil for dimensions.
+					const clip = {
+						x: Math.floor(svgRect.x),
+						y: Math.floor(svgRect.y),
+						width: Math.ceil(svgRect.width),
+						height: Math.ceil(svgRect.height),
+					};
+
+					// Resize viewport to fit the SVG content exactly.
+					// This ensures page.screenshot({ clip }) captures
+					// the full content without viewport-based clipping.
+					await page.setViewport({
+						width: clip.x + clip.width,
+						height: clip.y + clip.height,
+						deviceScaleFactor: 2,
+					});
+
+					const imageBuffer = await page.screenshot({
+						clip,
 						omitBackground: false,
 					});
 					// Convert Uint8Array to Buffer if needed

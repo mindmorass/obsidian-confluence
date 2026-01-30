@@ -14,8 +14,7 @@ window.renderMermaidChart = async (chartData, mermaidConfig) => {
 
 	// getBBox() returns the tight bounding box of ALL graphical content
 	// in SVG user coordinates, including elements that overflow the
-	// declared viewBox. This is more accurate than getBoundingClientRect()
-	// (CSS layout box) or scrollWidth/scrollHeight (scrollable area).
+	// declared viewBox.
 	const bbox = svgElement.getBBox();
 
 	const padding = 10;
@@ -24,9 +23,18 @@ window.renderMermaidChart = async (chartData, mermaidConfig) => {
 	const width = bbox.width + padding * 2;
 	const height = bbox.height + padding * 2;
 
-	// Update the SVG to encompass all graphical content so the
-	// container element (#graphDiv) sizes correctly for screenshot
+	// Update the SVG to encompass all graphical content
 	svgElement.setAttribute("viewBox", `${x} ${y} ${width} ${height}`);
 	svgElement.setAttribute("width", `${Math.ceil(width)}`);
 	svgElement.setAttribute("height", `${Math.ceil(height)}`);
+
+	// Return the CSS pixel bounding rect of the SVG element itself
+	// so the Node.js side can use it for page.screenshot({ clip })
+	const rect = svgElement.getBoundingClientRect();
+	return {
+		x: rect.x,
+		y: rect.y,
+		width: rect.width,
+		height: rect.height,
+	};
 };
