@@ -57,7 +57,7 @@
         "lodash-es": "^4.17.21",
         "markdown-it-table": "^4.1.1",
         "markdown-table": "^3.0.3",
-        "mermaid": "10.9.5",
+        "mermaid": "11.12.2",
         "prosemirror-markdown": "^1.11.0",
         "prosemirror-model": "1.19.3",
         "sort-any": "^4.0.5",
