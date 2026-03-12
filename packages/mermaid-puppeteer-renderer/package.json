@@ -20,7 +20,7 @@
     "dependencies": {
         "@atlaskit/editor-common": "^74.0.1",
         "@markdown-confluence/lib": "5.5.3",
-        "esbuild": "0.27.2",
+        "esbuild": "0.27.4",
         "mermaid": "^10.9.5",
         "puppeteer": "^24.34.0"
     },
